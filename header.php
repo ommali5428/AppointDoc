@@ -1,14 +1,14 @@
  <!DOCTYPE html>
   
- <?php session_start();
- 
-		include('C:\xampp\htdocs\img\AppointDoc\conn.php');
-		//include('C:\xampp\htdocs\img\AppointDoc\header.php');
-		
-		
-		
-			
- ?>
+<?php
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/conn.php';
+
+?>
  
 <html lang="en">
 
