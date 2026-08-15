@@ -16,13 +16,12 @@ require_once __DIR__ . '/header.php';
 
     <div class="row">
 
-
         <!-- HOME IMAGE -->
 
         <div class="images">
 
             <img
-                src="/img/AppointDoc/drimages/home2.jpg"
+                src="/drimages/home2.jpg"
                 alt="Appointment Doctor"
             >
 
@@ -110,9 +109,7 @@ require_once __DIR__ . '/header.php';
 
         if ($result) {
 
-
             while ($row = mysqli_fetch_assoc($result)) {
-
 
                 // ==================================
                 // SAFE VALUES
@@ -157,21 +154,19 @@ require_once __DIR__ . '/header.php';
                 if ($imageName !== '') {
 
                     $imagePath =
-                        '/img/AppointDoc/drimages/' .
+                        '/drimages/' .
                         rawurlencode($imageName);
 
                 }
-
 
                 ?>
 
                 <div class="box">
 
-
                     <!-- SPECIALIST IMAGE -->
 
                     <a
-                        href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                        href="/dr.php?id=<?php echo $specializationId; ?>"
                     >
 
                         <?php if ($imagePath !== ''): ?>
@@ -220,7 +215,7 @@ require_once __DIR__ . '/header.php';
                     <div class="content">
 
                         <a
-                            href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                            href="/dr.php?id=<?php echo $specializationId; ?>"
                         >
 
                             <h2>
@@ -241,12 +236,9 @@ require_once __DIR__ . '/header.php';
 
             }
 
-
         } else {
 
-
             echo '<p>Unable to load specialists.</p>';
-
 
         }
 
@@ -266,7 +258,6 @@ require_once __DIR__ . '/header.php';
     class="review"
 >
 
-
     <h1 class="heading">
 
         Emergency Appointment Book
@@ -276,21 +267,17 @@ require_once __DIR__ . '/header.php';
 
     <div class="box-container">
 
-
         <div class="box">
-
 
             <div class="images">
 
-
                 <img
-                    src="/img/AppointDoc/drimages/emergency.jpeg"
+                    src="/drimages/emergency.jpeg"
                     alt="Emergency Appointment"
                 >
 
 
                 <div class="info">
-
 
                     <a href="#">
 
@@ -299,7 +286,6 @@ require_once __DIR__ . '/header.php';
                         </h3>
 
                     </a>
-
 
                 </div>
 
@@ -311,7 +297,6 @@ require_once __DIR__ . '/header.php';
                 *Under Construct*
 
             </p>
-
 
         </div>
 
@@ -329,7 +314,6 @@ require_once __DIR__ . '/header.php';
     class="review"
 >
 
-
     <h1 class="heading">
 
         Our Patient Reviews
@@ -345,7 +329,6 @@ require_once __DIR__ . '/header.php';
 
 
     <div class="box-container">
-
 
         <?php
 
@@ -369,11 +352,9 @@ require_once __DIR__ . '/header.php';
 
         if ($result) {
 
-
             while (
                 $row = mysqli_fetch_assoc($result)
             ) {
-
 
                 $feedbackText =
                     htmlspecialchars(
@@ -390,12 +371,9 @@ require_once __DIR__ . '/header.php';
                         'UTF-8'
                     );
 
-
                 ?>
 
-
                 <div class="box">
-
 
                     <i class="fas fa-quote-left"></i>
 
@@ -411,7 +389,6 @@ require_once __DIR__ . '/header.php';
 
                     <div class="info">
 
-
                         <hr>
 
 
@@ -423,16 +400,13 @@ require_once __DIR__ . '/header.php';
 
                         </h3>
 
-
                     </div>
 
                 </div>
 
-
                 <?php
 
             }
-
 
         }
 
@@ -450,7 +424,7 @@ require_once __DIR__ . '/header.php';
 <section
     class="footer"
     style="
-        background-image:url('/img/AppointDoc/drimages/25757.jpg');
+        background-image:url('/drimages/25757.jpg');
         background-size:100%;
     "
 >
@@ -461,7 +435,6 @@ require_once __DIR__ . '/header.php';
     =========================================== -->
 
     <div class="box">
-
 
         <h2 class="logo">
 
@@ -474,7 +447,6 @@ require_once __DIR__ . '/header.php';
 
         try {
 
-
             $sql =
                 "SELECT * FROM tblspecialization";
 
@@ -486,7 +458,6 @@ require_once __DIR__ . '/header.php';
             while (
                 $row = $stmt->fetch(PDO::FETCH_ASSOC)
             ) {
-
 
                 $specializationId =
                     isset($row['ID'])
@@ -506,9 +477,8 @@ require_once __DIR__ . '/header.php';
 
                     ?>
 
-
                     <a
-                        href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                        href="/dr.php?id=<?php echo $specializationId; ?>"
                     >
 
                         <?php
@@ -517,19 +487,15 @@ require_once __DIR__ . '/header.php';
 
                     </a>
 
-
                     <?php
 
                 }
 
             }
 
-
         } catch (PDOException $e) {
 
-
             echo '<p>Unable to load specialists.</p>';
-
 
         }
 
@@ -544,7 +510,6 @@ require_once __DIR__ . '/header.php';
 
     <div class="box">
 
-
         <h2 class="logo">
 
             Links
@@ -552,41 +517,40 @@ require_once __DIR__ . '/header.php';
         </h2>
 
 
-        <a href="/img/AppointDoc/index.php">
+        <a href="/index.php">
             Home
         </a>
 
 
-        <a href="/img/AppointDoc/about.php">
+        <a href="/about.php">
             About
         </a>
 
 
         <a
-            href="/img/AppointDoc/appointment/bookappointment.php"
+            href="/appointment/bookappointment.php"
         >
             Book Appointment
         </a>
 
 
         <a
-            href="/img/AppointDoc/appointment/check-appointment.php"
+            href="/appointment/check-appointment.php"
         >
             Check Appointment
         </a>
 
 
         <a
-            href="/img/AppointDoc/appointment/cancel.php"
+            href="/appointment/cancel.php"
         >
             Cancel Appointment
         </a>
 
 
-        <a href="/img/AppointDoc/feedback.php">
+        <a href="/feedback.php">
             Feedback
         </a>
-
 
     </div>
 
@@ -597,17 +561,13 @@ require_once __DIR__ . '/header.php';
 
     <h1 class="credit">
 
-
         Created by
-
 
         <span>
             OM And MAYUR
         </span>
 
-
         All Rights Reserved.
-
 
     </h1>
 
