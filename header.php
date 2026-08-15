@@ -1,18 +1,14 @@
 <?php
 
-// Start output buffering BEFORE anything is sent
 ob_start();
 
-// Start session only if it is not already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database connection
 require_once __DIR__ . '/conn.php';
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
