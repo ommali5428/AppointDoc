@@ -1,6 +1,6 @@
 <?php
 
-// Start session before any HTML/output
+// Start session before ANY output
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -9,7 +9,6 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/conn.php';
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -26,22 +25,32 @@ require_once __DIR__ . '/conn.php';
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/navbar.css">
-    <link rel="stylesheet" href="/css/profilelogo2.css">
+    <link rel="stylesheet"
+          href="/img/AppointDoc/css/style.css">
+
+    <link rel="stylesheet"
+          href="/img/AppointDoc/css/navbar.css">
+
+    <link rel="stylesheet"
+          href="/img/AppointDoc/css/profilelogo2.css">
 
     <!-- jQuery -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js">
+    </script>
 
-    <!-- Custom JavaScript -->
-    <script src="/js/main.js"></script>
-    <script src="/js/java.js"></script>
+    <!-- Custom JS -->
+    <script src="/img/AppointDoc/js/main.js"></script>
+
+    <script src="/img/AppointDoc/js/java.js"></script>
 
     <style>
+
         header {
             width: 100%;
             top: 0;
         }
+
     </style>
 
 </head>
@@ -50,27 +59,41 @@ require_once __DIR__ . '/conn.php';
 
 <header style="box-shadow: .1rem .3rem rgba(0, 0, 0, .3);">
 
-    <!-- Logo -->
-    <a href="/index.php" class="logo">
+    <!-- LOGO -->
+
+    <a href="/img/AppointDoc/index.php" class="logo">
+
         <span>A</span>ppoint <span>D</span>oc.
+
     </a>
 
-    <!-- Navigation -->
+
+    <!-- NAVBAR -->
+
     <nav class="navbar">
 
         <ul>
 
-            <!-- Home -->
+            <!-- HOME -->
+
             <li>
-                <a href="/index.php">Home</a>
+                <a href="/img/AppointDoc/index.php">
+                    Home
+                </a>
             </li>
 
-            <!-- About -->
+
+            <!-- ABOUT -->
+
             <li>
-                <a href="/about.php">About Us</a>
+                <a href="/img/AppointDoc/about.php">
+                    About Us
+                </a>
             </li>
 
-            <!-- Doctor Specialist -->
+
+            <!-- SPECIALIST -->
+
             <li>
 
                 <div class="dropdown">
@@ -78,39 +101,49 @@ require_once __DIR__ . '/conn.php';
                     <button
                         type="button"
                         onclick="myFunction()"
-                        class="dropbtn"
-                    >
+                        class="dropbtn">
+
                         Dr. Specialist
+
                     </button>
 
-                    <div id="myDropdown" class="dropdown-content">
+
+                    <div
+                        id="myDropdown"
+                        class="dropdown-content">
 
                         <?php
 
                         try {
 
                             $sql = "SELECT * FROM tblspecialization";
+
                             $stmt = $dbh->query($sql);
 
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-                                $specializationId = (int)($row['ID'] ?? 0);
+                                $id = (int)($row['ID'] ?? 0);
 
-                                $specializationName = htmlspecialchars(
+                                $specialization = htmlspecialchars(
                                     $row['Specialization'] ?? '',
                                     ENT_QUOTES,
                                     'UTF-8'
                                 );
 
-                                if ($specializationId > 0 && $specializationName !== '') {
+                                if ($id > 0) {
+
                                     ?>
 
-                                    <a href="/dr.php?id=<?php echo $specializationId; ?>">
-                                        <?php echo $specializationName; ?>
+                                    <a href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
+
+                                        <?php echo $specialization; ?>
+
                                     </a>
 
                                     <?php
+
                                 }
+
                             }
 
                         } catch (PDOException $e) {
@@ -127,51 +160,80 @@ require_once __DIR__ . '/conn.php';
 
             </li>
 
-            <!-- Check Appointment -->
+
+            <!-- CHECK APPOINTMENT -->
+
             <li>
-                <a href="/appointment/check-appointment.php">
+
+                <a href="/img/AppointDoc/appointment/check-appointment.php">
+
                     Check Appointment
+
                 </a>
+
             </li>
 
-            <!-- Book Appointment -->
+
+            <!-- BOOK APPOINTMENT -->
+
             <li>
-                <a href="/appointment/bookappointment.php">
+
+                <a href="/img/AppointDoc/appointment/bookappointment.php">
+
                     Book Appointment
+
                 </a>
+
             </li>
 
-            <!-- Feedback -->
+
+            <!-- FEEDBACK -->
+
             <li>
-                <a href="/feedback.php">
+
+                <a href="/img/AppointDoc/feedback.php">
+
                     Feedback
+
                 </a>
+
             </li>
 
-            <!-- Doctor Panel -->
+
+            <!-- DOCTOR PANEL -->
+
             <li>
-                <a href="/appointment/dr_pannel/login.php">
+
+                <a href="/img/AppointDoc/appointment/dr_pannel/login.php">
+
                     Dr Panel
+
                 </a>
+
             </li>
 
-            <!-- User Profile -->
+
+            <!-- USER PROFILE -->
+
             <li>
 
                 <?php if (!isset($_SESSION['user_name'])): ?>
 
                     <!-- NOT LOGGED IN -->
 
-                    <div class="profile-container">
+                    <div>
 
                         <img
-                            src="/drimages/profile.png"
+                            src="/img/AppointDoc/drimages/profile.png"
                             class="user-pic"
                             onclick="toggleMenu()"
                             alt="Profile"
                         >
 
-                        <div class="sub-menu-wrap" id="subMenu">
+
+                        <div
+                            class="sub-menu-wrap"
+                            id="subMenu">
 
                             <div class="sub-menu">
 
@@ -185,60 +247,63 @@ require_once __DIR__ . '/conn.php';
 
                                 <hr>
 
-                                <!-- Profile -->
+
+                                <!-- PROFILE -->
+
                                 <a
-                                    href="/login/login_form.php"
-                                    class="sub-menu-link"
-                                >
+                                    href="/img/AppointDoc/login/login_form.php"
+                                    class="sub-menu-link">
 
                                     <img
-                                        src="/drimages/profile.png"
+                                        src="/img/AppointDoc/drimages/profile.png"
                                         alt="Profile"
                                     >
 
-                                    <p>
+                                    <p style="font-size:16px;">
                                         Profile
                                     </p>
 
-                                    <span>&gt;</span>
+                                    <span>></span>
 
                                 </a>
 
-                                <!-- Settings -->
+
+                                <!-- SETTINGS -->
+
                                 <a
-                                    href="/login/login_form.php"
-                                    class="sub-menu-link"
-                                >
+                                    href="/img/AppointDoc/login/login_form.php"
+                                    class="sub-menu-link">
 
                                     <img
-                                        src="/drimages/setting.png"
+                                        src="/img/AppointDoc/drimages/setting.png"
                                         alt="Settings"
                                     >
 
-                                    <p>
+                                    <p style="font-size:16px;">
                                         Settings
                                     </p>
 
-                                    <span>&gt;</span>
+                                    <span>></span>
 
                                 </a>
 
-                                <!-- Login -->
+
+                                <!-- LOGIN -->
+
                                 <a
-                                    href="/login/login_form.php"
-                                    class="sub-menu-link"
-                                >
+                                    href="/img/AppointDoc/login/login_form.php"
+                                    class="sub-menu-link">
 
                                     <img
-                                        src="/drimages/login1.png"
+                                        src="/img/AppointDoc/drimages/login1.png"
                                         alt="Login"
                                     >
 
-                                    <p>
+                                    <p style="font-size:16px;">
                                         Login
                                     </p>
 
-                                    <span>&gt;</span>
+                                    <span>></span>
 
                                 </a>
 
@@ -248,39 +313,45 @@ require_once __DIR__ . '/conn.php';
 
                     </div>
 
+
                 <?php else: ?>
 
                     <!-- LOGGED IN -->
 
                     <?php
 
-                    $userName = $_SESSION['user_name'] ?? 'User';
+                    $userName = $_SESSION['user_name'];
 
                     ?>
 
-                    <div class="profile-container">
+                    <div>
 
                         <img
-                            src="/drimages/profile.png"
+                            src="/img/AppointDoc/drimages/profile.png"
                             class="user-pic"
                             onclick="toggleMenu()"
                             alt="Profile"
                         >
 
-                        <div class="sub-menu-wrap" id="subMenu">
+
+                        <div
+                            class="sub-menu-wrap"
+                            id="subMenu">
 
                             <div class="sub-menu">
 
                                 <div class="user-info">
 
-                                    <h2>
+                                    <h2 style="font-size:15px;">
 
                                         <?php
+
                                         echo htmlspecialchars(
                                             $userName,
                                             ENT_QUOTES,
                                             'UTF-8'
                                         );
+
                                         ?>
 
                                     </h2>
@@ -289,60 +360,63 @@ require_once __DIR__ . '/conn.php';
 
                                 <hr>
 
-                                <!-- Profile -->
+
+                                <!-- PROFILE -->
+
                                 <a
-                                    href="/user.php"
-                                    class="sub-menu-link"
-                                >
+                                    href="/img/AppointDoc/user.php"
+                                    class="sub-menu-link">
 
                                     <img
-                                        src="/drimages/profile.png"
+                                        src="/img/AppointDoc/drimages/profile.png"
                                         alt="Profile"
                                     >
 
-                                    <p>
+                                    <p style="font-size:16px;">
                                         Profile
                                     </p>
 
-                                    <span>&gt;</span>
+                                    <span>></span>
 
                                 </a>
 
-                                <!-- Settings -->
+
+                                <!-- SETTINGS -->
+
                                 <a
-                                    href="/setting.php"
-                                    class="sub-menu-link"
-                                >
+                                    href="/img/AppointDoc/setting.php"
+                                    class="sub-menu-link">
 
                                     <img
-                                        src="/drimages/setting.png"
+                                        src="/img/AppointDoc/drimages/setting.png"
                                         alt="Settings"
                                     >
 
-                                    <p>
+                                    <p style="font-size:16px;">
                                         Settings
                                     </p>
 
-                                    <span>&gt;</span>
+                                    <span>></span>
 
                                 </a>
 
-                                <!-- Logout -->
+
+                                <!-- LOGOUT -->
+
                                 <a
-                                    href="/login/logout.php"
-                                    class="sub-menu-link"
-                                >
+                                    href="/img/AppointDoc/login/logout.php"
+                                    class="sub-menu-link">
 
                                     <img
-                                        src="/drimages/logout.png"
+                                        src="/img/AppointDoc/drimages/logout.png"
                                         alt="Logout"
                                     >
 
-                                    <p>
+                                    <p style="font-size:16px;">
                                         Logout
                                     </p>
 
-                                    <span>&gt;</span>
+                                    <span>></span>
 
                                 </a>
 
@@ -360,10 +434,14 @@ require_once __DIR__ . '/conn.php';
 
     </nav>
 
-    <!-- Mobile Menu Button -->
+
+    <!-- MOBILE MENU -->
+
     <div class="fas fa-bars"></div>
 
 </header>
 
+
 <!-- Profile JavaScript -->
-<script src="/js/profile.js"></script>
+
+<script src="/img/AppointDoc/js/profile.js"></script>

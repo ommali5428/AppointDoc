@@ -1,18 +1,5 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| AppointDoc - Home Page
-|--------------------------------------------------------------------------
-| header.php handles:
-| - session_start()
-| - database connection
-| - HTML <head>
-| - navbar
-| - profile menu
-|--------------------------------------------------------------------------
-*/
-
 require_once __DIR__ . '/header.php';
 
 ?>
@@ -25,47 +12,62 @@ require_once __DIR__ . '/header.php';
 
     <div class="row">
 
-        <!-- Home Image -->
+        <!-- HOME IMAGE -->
+
         <div class="images">
 
             <img
-                src="/drimages/home2.jpg"
+                src="/img/AppointDoc/drimages/home2.jpg"
                 alt="Appointment Doctor"
             >
 
         </div>
 
 
-        <!-- Home Content -->
+        <!-- HOME CONTENT -->
+
         <div class="content">
 
-            <?php if (isset($_SESSION['user_name']) && $_SESSION['user_name'] !== ''): ?>
+            <?php if (isset($_SESSION['user_name'])): ?>
 
                 <p>
+
                     Welcome&nbsp;&nbsp;
+
                     <?php
+
                     echo htmlspecialchars(
                         $_SESSION['user_name'],
                         ENT_QUOTES,
                         'UTF-8'
                     );
+
                     ?>
+
                 </p>
 
             <?php endif; ?>
 
 
             <h1>
+
                 <span>Stay</span> Safe,
+
                 <span>Stay</span> Healthy.
+
             </h1>
 
 
             <p>
+
                 Balance Is The Key To Everything.
+
                 What we Do, Think, Say, Eat, Feel,
+
                 They All Require Awareness,
+
                 And Through This Awareness, We Can Grow.
+
             </p>
 
         </div>
@@ -81,13 +83,16 @@ require_once __DIR__ . '/header.php';
 
 <h1
     class="heading1"
-    style="color:#0188df;"
->
+    style="color:#0188df;">
+
     Specialist
+
 </h1>
 
 
-<section id="doctor" class="card">
+<section
+    id="doctor"
+    class="card">
 
     <div class="box-container">
 
@@ -97,99 +102,54 @@ require_once __DIR__ . '/header.php';
 
         $result = mysqli_query($conn, $query);
 
-        if ($result && mysqli_num_rows($result) > 0) {
+        if ($result) {
 
             while ($row = mysqli_fetch_assoc($result)) {
 
-                /*
-                |--------------------------------------------------------------------------
-                | Get specialization ID
-                |--------------------------------------------------------------------------
-                */
+                $id = (int)($row['ID'] ?? 0);
 
-                $specializationId = isset($row['ID'])
-                    ? (int)$row['ID']
-                    : 0;
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Get specialization name
-                |--------------------------------------------------------------------------
-                */
-
-                if (isset($row['Specialization'])) {
-
-                    $specializationName = $row['Specialization'];
-
-                } elseif (isset($row[1])) {
-
-                    $specializationName = $row[1];
-
-                } else {
-
-                    $specializationName = '';
-
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Get specialization image
-                |--------------------------------------------------------------------------
-                */
-
-                if (isset($row['Image']) && $row['Image'] !== '') {
-
-                    $specializationImage = $row['Image'];
-
-                } elseif (isset($row[2]) && $row[2] !== '') {
-
-                    $specializationImage = $row[2];
-
-                } else {
-
-                    $specializationImage = '';
-
-                }
-
-
-                $specializationName = htmlspecialchars(
-                    $specializationName,
+                $specialization = htmlspecialchars(
+                    $row['Specialization'] ?? '',
                     ENT_QUOTES,
                     'UTF-8'
                 );
 
-                $specializationImage = htmlspecialchars(
-                    $specializationImage,
+                /*
+                 * Your old code used $row[2].
+                 * Keep using the third column for the image
+                 * until we confirm the exact database column name.
+                 */
+
+                $imageName = '';
+
+                if (isset($row['Image']) && $row['Image'] !== null) {
+
+                    $imageName = $row['Image'];
+
+                } elseif (isset($row[2]) && $row[2] !== null) {
+
+                    $imageName = $row[2];
+
+                }
+
+                $imageName = htmlspecialchars(
+                    $imageName,
                     ENT_QUOTES,
                     'UTF-8'
                 );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Skip invalid database records
-                |--------------------------------------------------------------------------
-                */
-
-                if ($specializationId <= 0 || $specializationName === '') {
-                    continue;
-                }
 
                 ?>
 
-                <!-- Specialist Box -->
-
                 <div class="box">
 
-                    <a href="/dr.php?id=<?php echo $specializationId; ?>">
+                    <a
+                        href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
 
-                        <?php if ($specializationImage !== ''): ?>
+                        <?php if ($imageName !== ''): ?>
 
                             <img
-                                src="/drimages/<?php echo $specializationImage; ?>"
-                                alt="<?php echo $specializationName; ?>"
+                                src="/img/AppointDoc/drimages/<?php echo $imageName; ?>"
+                                alt="<?php echo $specialization; ?>"
                             >
 
                         <?php endif; ?>
@@ -199,10 +159,13 @@ require_once __DIR__ . '/header.php';
 
                     <div class="content">
 
-                        <a href="/dr.php?id=<?php echo $specializationId; ?>">
+                        <a
+                            href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
 
                             <h2>
-                                <?php echo $specializationName; ?>
+
+                                <?php echo $specialization; ?>
+
                             </h2>
 
                         </a>
@@ -217,13 +180,7 @@ require_once __DIR__ . '/header.php';
 
         } else {
 
-            ?>
-
-            <p>
-                Unable to load specialists.
-            </p>
-
-            <?php
+            echo '<p>Unable to load specialists.</p>';
 
         }
 
@@ -240,11 +197,12 @@ require_once __DIR__ . '/header.php';
 
 <section
     id="emergency"
-    class="review"
->
+    class="review">
 
     <h1 class="heading">
+
         Emergency Appointment Book
+
     </h1>
 
 
@@ -255,7 +213,7 @@ require_once __DIR__ . '/header.php';
             <div class="images">
 
                 <img
-                    src="/drimages/emergency.jpeg"
+                    src="/img/AppointDoc/drimages/emergency.jpeg"
                     alt="Emergency Appointment"
                 >
 
@@ -276,7 +234,9 @@ require_once __DIR__ . '/header.php';
 
 
             <p style="color:green;">
+
                 *Under Construct*
+
             </p>
 
         </div>
@@ -292,16 +252,19 @@ require_once __DIR__ . '/header.php';
 
 <section
     id="review"
-    class="review"
->
+    class="review">
 
     <h1 class="heading">
+
         Our Patient Reviews
+
     </h1>
 
 
     <h3 class="title">
+
         What patients say about us
+
     </h3>
 
 
@@ -318,77 +281,23 @@ require_once __DIR__ . '/header.php';
 
         $result = mysqli_query($conn, $query);
 
-
-        if ($result && mysqli_num_rows($result) > 0) {
+        if ($result) {
 
             while ($row = mysqli_fetch_assoc($result)) {
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | Feedback text
-                |--------------------------------------------------------------------------
-                */
-
-                if (isset($row['feedback'])) {
-
-                    $feedbackText = $row['feedback'];
-
-                } elseif (isset($row['Feedback'])) {
-
-                    $feedbackText = $row['Feedback'];
-
-                } elseif (isset($row[3])) {
-
-                    $feedbackText = $row[3];
-
-                } else {
-
-                    $feedbackText = '';
-
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Patient name
-                |--------------------------------------------------------------------------
-                */
-
-                if (isset($row['name'])) {
-
-                    $patientName = $row['name'];
-
-                } elseif (isset($row['Name'])) {
-
-                    $patientName = $row['Name'];
-
-                } elseif (isset($row[1])) {
-
-                    $patientName = $row[1];
-
-                } else {
-
-                    $patientName = 'Patient';
-
-                }
-
-
-                $feedbackText = htmlspecialchars(
-                    $feedbackText,
+                $feedback = htmlspecialchars(
+                    $row['feedback'] ?? '',
                     ENT_QUOTES,
                     'UTF-8'
                 );
 
-                $patientName = htmlspecialchars(
-                    $patientName,
+                $name = htmlspecialchars(
+                    $row['name'] ?? '',
                     ENT_QUOTES,
                     'UTF-8'
                 );
 
                 ?>
-
-                <!-- Review Box -->
 
                 <div class="box">
 
@@ -396,7 +305,9 @@ require_once __DIR__ . '/header.php';
 
 
                     <p>
-                        <?php echo $feedbackText; ?>
+
+                        <?php echo $feedback; ?>
+
                     </p>
 
 
@@ -406,7 +317,9 @@ require_once __DIR__ . '/header.php';
 
 
                         <h3>
-                            <?php echo $patientName; ?>
+
+                            <?php echo $name; ?>
+
                         </h3>
 
                     </div>
@@ -416,16 +329,6 @@ require_once __DIR__ . '/header.php';
                 <?php
 
             }
-
-        } else {
-
-            ?>
-
-            <p>
-                No patient reviews available.
-            </p>
-
-            <?php
 
         }
 
@@ -443,20 +346,20 @@ require_once __DIR__ . '/header.php';
 <section
     class="footer"
     style="
-        background-image: url('/drimages/25757.jpg');
-        background-size: 100%;
+        background-image:url('/img/AppointDoc/drimages/25757.jpg');
+        background-size:100%;
     "
 >
 
 
-    <!-- =========================
-         SPECIALISTS
-    ========================= -->
+    <!-- SPECIALISTS -->
 
     <div class="box">
 
         <h2 class="logo">
+
             Specialist
+
         </h2>
 
 
@@ -468,46 +371,22 @@ require_once __DIR__ . '/header.php';
 
             $stmt = $dbh->query($sql);
 
-
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
+                $id = (int)($row['ID'] ?? 0);
 
-                $specializationId = isset($row['ID'])
-                    ? (int)$row['ID']
-                    : 0;
-
-
-                if (isset($row['Specialization'])) {
-
-                    $specializationName = $row['Specialization'];
-
-                } elseif (isset($row[1])) {
-
-                    $specializationName = $row[1];
-
-                } else {
-
-                    $specializationName = '';
-
-                }
-
-
-                $specializationName = htmlspecialchars(
-                    $specializationName,
+                $specialization = htmlspecialchars(
+                    $row['Specialization'] ?? '',
                     ENT_QUOTES,
                     'UTF-8'
                 );
 
-
-                if ($specializationId <= 0 || $specializationName === '') {
-                    continue;
-                }
-
                 ?>
 
-                <a href="/dr.php?id=<?php echo $specializationId; ?>">
+                <a
+                    href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
 
-                    <?php echo $specializationName; ?>
+                    <?php echo $specialization; ?>
 
                 </a>
 
@@ -517,13 +396,7 @@ require_once __DIR__ . '/header.php';
 
         } catch (PDOException $e) {
 
-            ?>
-
-            <p>
-                Unable to load specialists.
-            </p>
-
-            <?php
+            echo "<p>Unable to load specialists.</p>";
 
         }
 
@@ -532,52 +405,50 @@ require_once __DIR__ . '/header.php';
     </div>
 
 
-    <!-- =========================
-         WEBSITE LINKS
-    ========================= -->
+    <!-- LINKS -->
 
     <div class="box">
 
         <h2 class="logo">
+
             Links
+
         </h2>
 
 
-        <a href="/index.php">
+        <a href="/img/AppointDoc/index.php">
             Home
         </a>
 
 
-        <a href="/about.php">
+        <a href="/img/AppointDoc/about.php">
             About
         </a>
 
 
-        <a href="/appointment/bookappointment.php">
+        <a href="/img/AppointDoc/appointment/bookappointment.php">
             Book Appointment
         </a>
 
 
-        <a href="/appointment/check-appointment.php">
+        <a href="/img/AppointDoc/appointment/check-appointment.php">
             Check Appointment
         </a>
 
 
-        <a href="/appointment/cancel.php">
+        <a href="/img/AppointDoc/appointment/cancel.php">
             Cancel Appointment
         </a>
 
 
-        <a href="/feedback.php">
+        <a href="/img/AppointDoc/feedback.php">
             Feedback
         </a>
 
     </div>
 
 
-    <!-- =========================
-         COPYRIGHT
-    ========================= -->
+    <!-- COPYRIGHT -->
 
     <h1 class="credit">
 
@@ -591,13 +462,8 @@ require_once __DIR__ . '/header.php';
 
     </h1>
 
-
 </section>
 
-
-<!-- =========================
-     END PAGE
-========================= -->
 
 </body>
 
