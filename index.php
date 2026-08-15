@@ -134,22 +134,26 @@ require_once __DIR__ . '/header.php';
 
 
                 // ==================================
-                // GET IMAGE NAME
+                // IMAGE NAME
+                //
+                // IMPORTANT:
+                // Database column is "images"
+                // NOT "Image"
                 // ==================================
 
                 $imageName =
-                    isset($row['Image'])
-                    ? trim((string)$row['Image'])
+                    isset($row['images'])
+                    ? trim((string)$row['images'])
                     : '';
 
 
                 // ==================================
-                // CLEAN OLD IMAGE PATHS
+                // CLEAN IMAGE PATH
                 // ==================================
 
                 if ($imageName !== '') {
 
-                    // Convert Windows slashes
+                    // Convert Windows slash to Linux slash
                     $imageName = str_replace(
                         '\\',
                         '/',
@@ -157,7 +161,7 @@ require_once __DIR__ . '/header.php';
                     );
 
 
-                    // Remove old complete path
+                    // Remove old AppointDoc path
                     $imageName = str_replace(
                         '/img/AppointDoc/drimages/',
                         '',
@@ -165,7 +169,7 @@ require_once __DIR__ . '/header.php';
                     );
 
 
-                    // Remove old path without starting /
+                    // Remove old AppointDoc path without /
                     $imageName = str_replace(
                         'img/AppointDoc/drimages/',
                         '',
@@ -173,7 +177,7 @@ require_once __DIR__ . '/header.php';
                     );
 
 
-                    // Remove /drimages/
+                    // Remove drimages/ if already present
                     $imageName = preg_replace(
                         '#^/?drimages/#i',
                         '',
@@ -188,14 +192,14 @@ require_once __DIR__ . '/header.php';
                     );
 
 
-                    // Remove spaces from beginning/end
+                    // Remove unnecessary spaces
                     $imageName = trim($imageName);
 
                 }
 
 
                 // ==================================
-                // IMAGE PATH
+                // CREATE IMAGE URL
                 // ==================================
 
                 $imagePath = '';
@@ -238,39 +242,12 @@ require_once __DIR__ . '/header.php';
                                     'UTF-8'
                                 ); ?>"
                                 alt="<?php echo $specializationName; ?>"
-                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                             >
-
-
-                            <!-- FALLBACK IF IMAGE DOES NOT LOAD -->
-
-                            <div
-                                style="
-                                    width:100%;
-                                    min-height:180px;
-                                    display:none;
-                                    align-items:center;
-                                    justify-content:center;
-                                    background:#f5f5f5;
-                                    border-radius:8px;
-                                "
-                            >
-
-                                <i
-                                    class="fas fa-user-doctor"
-                                    style="
-                                        font-size:70px;
-                                        color:#0188df;
-                                    "
-                                ></i>
-
-                            </div>
-
 
                         <?php else: ?>
 
                             <!-- ==================================
-                                 NO IMAGE IN DATABASE
+                                 FALLBACK IMAGE
                             =================================== -->
 
                             <div
@@ -530,7 +507,6 @@ require_once __DIR__ . '/header.php';
 
     <div class="box">
 
-
         <h2 class="logo">
 
             Specialist
@@ -588,7 +564,6 @@ require_once __DIR__ . '/header.php';
 
             }
 
-
         } catch (PDOException $e) {
 
             echo '<p>Unable to load specialists.</p>';
@@ -605,7 +580,6 @@ require_once __DIR__ . '/header.php';
     =========================================== -->
 
     <div class="box">
-
 
         <h2 class="logo">
 
@@ -624,23 +598,17 @@ require_once __DIR__ . '/header.php';
         </a>
 
 
-        <a
-            href="/appointment/bookappointment.php"
-        >
+        <a href="/appointment/bookappointment.php">
             Book Appointment
         </a>
 
 
-        <a
-            href="/appointment/check-appointment.php"
-        >
+        <a href="/appointment/check-appointment.php">
             Check Appointment
         </a>
 
 
-        <a
-            href="/appointment/cancel.php"
-        >
+        <a href="/appointment/cancel.php">
             Cancel Appointment
         </a>
 
@@ -648,7 +616,6 @@ require_once __DIR__ . '/header.php';
         <a href="/feedback.php">
             Feedback
         </a>
-
 
     </div>
 
