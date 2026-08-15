@@ -96,97 +96,68 @@ require_once __DIR__ . '/header.php';
 
     <div class="box-container">
 
-        <?php
+<?php
 
-        $query = "SELECT * FROM tblspecialization";
+$query = "SELECT * FROM tblspecialization";
+$result = mysqli_query($conn, $query);
 
-        $result = mysqli_query($conn, $query);
+if ($result) {
 
-        if ($result) {
+    while ($row = mysqli_fetch_assoc($result)) {
 
-            while ($row = mysqli_fetch_assoc($result)) {
+        $id = (int)($row['ID'] ?? 0);
+        $specialization = htmlspecialchars(
+            $row['Specialization'] ?? '',
+            ENT_QUOTES,
+            'UTF-8'
+        );
 
-                $id = (int)($row['ID'] ?? 0);
-
-                $specialization = htmlspecialchars(
-                    $row['Specialization'] ?? '',
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
-
-                /*
-                 * Your old code used $row[2].
-                 * Keep using the third column for the image
-                 * until we confirm the exact database column name.
-                 */
-
-                $imageName = '';
-
-                if (isset($row['Image']) && $row['Image'] !== null) {
-
-                    $imageName = $row['Image'];
-
-                } elseif (isset($row[2]) && $row[2] !== null) {
-
-                    $imageName = $row[2];
-
-                }
-
-                $imageName = htmlspecialchars(
-                    $imageName,
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
-
-                ?>
-
-                <div class="box">
-
-                    <a
-                        href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
-
-                        <?php if ($imageName !== ''): ?>
-
-                            <img
-                                src="/img/AppointDoc/drimages/<?php echo $imageName; ?>"
-                                alt="<?php echo $specialization; ?>"
-                            >
-
-                        <?php endif; ?>
-
-                    </a>
-
-
-                    <div class="content">
-
-                        <a
-                            href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
-
-                            <h2>
-
-                                <?php echo $specialization; ?>
-
-                            </h2>
-
-                        </a>
-
-                    </div>
-
-                </div>
-
-                <?php
-
-            }
-
-        } else {
-
-            echo '<p>Unable to load specialists.</p>';
-
-        }
+        // Your original database uses column index 2 for image
+        $image = htmlspecialchars(
+            $row[2] ?? '',
+            ENT_QUOTES,
+            'UTF-8'
+        );
 
         ?>
 
-    </div>
+        <div class="box">
+
+            <a href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
+
+                <img
+                    src="/img/AppointDoc/drimages/<?php echo $image; ?>"
+                    alt="<?php echo $specialization; ?>"
+                >
+
+            </a>
+
+            <div class="content">
+
+                <a href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
+
+                    <h2>
+                        <?php echo $specialization; ?>
+                    </h2>
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <?php
+    }
+
+} else {
+
+    echo "<p>Unable to load specialists.</p>";
+
+}
+
+?>
+
+</div>
 
 </section>
 
