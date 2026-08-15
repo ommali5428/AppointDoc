@@ -1,16 +1,21 @@
 <?php
 
+// ==========================================
+// HEADER
+// ==========================================
+
 require_once __DIR__ . '/header.php';
 
 ?>
 
-<!-- =========================
+<!-- ==========================================
      HOME SECTION
-========================= -->
+=========================================== -->
 
 <section id="home" class="home">
 
     <div class="row">
+
 
         <!-- HOME IMAGE -->
 
@@ -52,7 +57,6 @@ require_once __DIR__ . '/header.php';
             <h1>
 
                 <span>Stay</span> Safe,
-
                 <span>Stay</span> Healthy.
 
             </h1>
@@ -61,11 +65,8 @@ require_once __DIR__ . '/header.php';
             <p>
 
                 Balance Is The Key To Everything.
-
                 What we Do, Think, Say, Eat, Feel,
-
                 They All Require Awareness,
-
                 And Through This Awareness, We Can Grow.
 
             </p>
@@ -77,94 +78,156 @@ require_once __DIR__ . '/header.php';
 </section>
 
 
-<!-- =========================
+<!-- ==========================================
      SPECIALIST SECTION
-========================= -->
+=========================================== -->
 
 <h1
     class="heading1"
-    style="color:#0188df;">
-
+    style="color:#0188df;"
+>
     Specialist
-
 </h1>
 
 
 <section
     id="doctor"
-    class="card">
+    class="card"
+>
 
     <div class="box-container">
 
         <?php
 
+        // ==========================================
+        // GET SPECIALIZATIONS
+        // ==========================================
+
         $query = "SELECT * FROM tblspecialization";
 
         $result = mysqli_query($conn, $query);
 
+
         if ($result) {
+
 
             while ($row = mysqli_fetch_assoc($result)) {
 
-                $id = (int)($row['ID'] ?? 0);
 
-                $specialization = htmlspecialchars(
-                    $row['Specialization'] ?? '',
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
+                // ==================================
+                // SAFE VALUES
+                // ==================================
+
+                $specializationId =
+                    isset($row['ID'])
+                    ? (int)$row['ID']
+                    : 0;
+
+
+                $specializationName =
+                    htmlspecialchars(
+                        $row['Specialization'] ?? '',
+                        ENT_QUOTES,
+                        'UTF-8'
+                    );
+
 
                 /*
-                 * Your old code used $row[2].
-                 * Keep using the third column for the image
-                 * until we confirm the exact database column name.
+                 * IMPORTANT:
+                 *
+                 * Your database currently has NULL/empty
+                 * values in the Image column.
+                 *
+                 * Therefore we DO NOT pass NULL to
+                 * htmlspecialchars().
                  */
 
-                $imageName = '';
+                $imageName =
+                    isset($row['Image'])
+                    ? trim((string)$row['Image'])
+                    : '';
 
-                if (isset($row['Image']) && $row['Image'] !== null) {
 
-                    $imageName = $row['Image'];
+                // ==================================
+                // IMAGE PATH
+                // ==================================
 
-                } elseif (isset($row[2]) && $row[2] !== null) {
+                $imagePath = '';
 
-                    $imageName = $row[2];
+                if ($imageName !== '') {
+
+                    $imagePath =
+                        '/img/AppointDoc/drimages/' .
+                        rawurlencode($imageName);
 
                 }
 
-                $imageName = htmlspecialchars(
-                    $imageName,
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
 
                 ?>
 
                 <div class="box">
 
-                    <a
-                        href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
 
-                        <?php if ($imageName !== ''): ?>
+                    <!-- SPECIALIST IMAGE -->
+
+                    <a
+                        href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                    >
+
+                        <?php if ($imagePath !== ''): ?>
 
                             <img
-                                src="/img/AppointDoc/drimages/<?php echo $imageName; ?>"
-                                alt="<?php echo $specialization; ?>"
+                                src="<?php echo $imagePath; ?>"
+                                alt="<?php echo $specializationName; ?>"
                             >
+
+                        <?php else: ?>
+
+                            <!--
+                                No image exists in database.
+                                Do not show a broken image.
+                            -->
+
+                            <div
+                                style="
+                                    width:100%;
+                                    min-height:180px;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    background:#f5f5f5;
+                                    border-radius:8px;
+                                "
+                            >
+
+                                <i
+                                    class="fas fa-user-doctor"
+                                    style="
+                                        font-size:70px;
+                                        color:#0188df;
+                                    "
+                                ></i>
+
+                            </div>
 
                         <?php endif; ?>
 
                     </a>
 
 
+                    <!-- SPECIALIST NAME -->
+
                     <div class="content">
 
                         <a
-                            href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
+                            href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                        >
 
                             <h2>
 
-                                <?php echo $specialization; ?>
+                                <?php
+                                echo $specializationName;
+                                ?>
 
                             </h2>
 
@@ -178,9 +241,12 @@ require_once __DIR__ . '/header.php';
 
             }
 
+
         } else {
 
+
             echo '<p>Unable to load specialists.</p>';
+
 
         }
 
@@ -191,13 +257,15 @@ require_once __DIR__ . '/header.php';
 </section>
 
 
-<!-- =========================
+<!-- ==========================================
      EMERGENCY APPOINTMENT
-========================= -->
+=========================================== -->
 
 <section
     id="emergency"
-    class="review">
+    class="review"
+>
+
 
     <h1 class="heading">
 
@@ -208,9 +276,12 @@ require_once __DIR__ . '/header.php';
 
     <div class="box-container">
 
+
         <div class="box">
 
+
             <div class="images">
+
 
                 <img
                     src="/img/AppointDoc/drimages/emergency.jpeg"
@@ -220,6 +291,7 @@ require_once __DIR__ . '/header.php';
 
                 <div class="info">
 
+
                     <a href="#">
 
                         <h3>
@@ -227,6 +299,7 @@ require_once __DIR__ . '/header.php';
                         </h3>
 
                     </a>
+
 
                 </div>
 
@@ -239,6 +312,7 @@ require_once __DIR__ . '/header.php';
 
             </p>
 
+
         </div>
 
     </div>
@@ -246,13 +320,15 @@ require_once __DIR__ . '/header.php';
 </section>
 
 
-<!-- =========================
+<!-- ==========================================
      PATIENT REVIEWS
-========================= -->
+=========================================== -->
 
 <section
     id="review"
-    class="review">
+    class="review"
+>
+
 
     <h1 class="heading">
 
@@ -270,7 +346,12 @@ require_once __DIR__ . '/header.php';
 
     <div class="box-container">
 
+
         <?php
+
+        // ==========================================
+        // GET LAST 3 REVIEWS
+        // ==========================================
 
         $query = "
             SELECT *
@@ -279,56 +360,79 @@ require_once __DIR__ . '/header.php';
             LIMIT 3
         ";
 
-        $result = mysqli_query($conn, $query);
+
+        $result = mysqli_query(
+            $conn,
+            $query
+        );
+
 
         if ($result) {
 
-            while ($row = mysqli_fetch_assoc($result)) {
 
-                $feedback = htmlspecialchars(
-                    $row['feedback'] ?? '',
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
+            while (
+                $row = mysqli_fetch_assoc($result)
+            ) {
 
-                $name = htmlspecialchars(
-                    $row['name'] ?? '',
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
+
+                $feedbackText =
+                    htmlspecialchars(
+                        $row['feedback'] ?? '',
+                        ENT_QUOTES,
+                        'UTF-8'
+                    );
+
+
+                $feedbackName =
+                    htmlspecialchars(
+                        $row['name'] ?? '',
+                        ENT_QUOTES,
+                        'UTF-8'
+                    );
+
 
                 ?>
 
+
                 <div class="box">
+
 
                     <i class="fas fa-quote-left"></i>
 
 
                     <p>
 
-                        <?php echo $feedback; ?>
+                        <?php
+                        echo $feedbackText;
+                        ?>
 
                     </p>
 
 
                     <div class="info">
 
+
                         <hr>
 
 
                         <h3>
 
-                            <?php echo $name; ?>
+                            <?php
+                            echo $feedbackName;
+                            ?>
 
                         </h3>
+
 
                     </div>
 
                 </div>
 
+
                 <?php
 
             }
+
 
         }
 
@@ -339,9 +443,9 @@ require_once __DIR__ . '/header.php';
 </section>
 
 
-<!-- =========================
+<!-- ==========================================
      FOOTER
-========================= -->
+=========================================== -->
 
 <section
     class="footer"
@@ -352,9 +456,12 @@ require_once __DIR__ . '/header.php';
 >
 
 
-    <!-- SPECIALISTS -->
+    <!-- ==========================================
+         SPECIALISTS
+    =========================================== -->
 
     <div class="box">
+
 
         <h2 class="logo">
 
@@ -367,36 +474,62 @@ require_once __DIR__ . '/header.php';
 
         try {
 
-            $sql = "SELECT * FROM tblspecialization";
 
-            $stmt = $dbh->query($sql);
+            $sql =
+                "SELECT * FROM tblspecialization";
 
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-                $id = (int)($row['ID'] ?? 0);
+            $stmt =
+                $dbh->query($sql);
 
-                $specialization = htmlspecialchars(
-                    $row['Specialization'] ?? '',
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
 
-                ?>
+            while (
+                $row = $stmt->fetch(PDO::FETCH_ASSOC)
+            ) {
 
-                <a
-                    href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
 
-                    <?php echo $specialization; ?>
+                $specializationId =
+                    isset($row['ID'])
+                    ? (int)$row['ID']
+                    : 0;
 
-                </a>
 
-                <?php
+                $specializationName =
+                    htmlspecialchars(
+                        $row['Specialization'] ?? '',
+                        ENT_QUOTES,
+                        'UTF-8'
+                    );
+
+
+                if ($specializationId > 0) {
+
+                    ?>
+
+
+                    <a
+                        href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                    >
+
+                        <?php
+                        echo $specializationName;
+                        ?>
+
+                    </a>
+
+
+                    <?php
+
+                }
 
             }
 
+
         } catch (PDOException $e) {
 
-            echo "<p>Unable to load specialists.</p>";
+
+            echo '<p>Unable to load specialists.</p>';
+
 
         }
 
@@ -405,9 +538,12 @@ require_once __DIR__ . '/header.php';
     </div>
 
 
-    <!-- LINKS -->
+    <!-- ==========================================
+         LINKS
+    =========================================== -->
 
     <div class="box">
+
 
         <h2 class="logo">
 
@@ -426,17 +562,23 @@ require_once __DIR__ . '/header.php';
         </a>
 
 
-        <a href="/img/AppointDoc/appointment/bookappointment.php">
+        <a
+            href="/img/AppointDoc/appointment/bookappointment.php"
+        >
             Book Appointment
         </a>
 
 
-        <a href="/img/AppointDoc/appointment/check-appointment.php">
+        <a
+            href="/img/AppointDoc/appointment/check-appointment.php"
+        >
             Check Appointment
         </a>
 
 
-        <a href="/img/AppointDoc/appointment/cancel.php">
+        <a
+            href="/img/AppointDoc/appointment/cancel.php"
+        >
             Cancel Appointment
         </a>
 
@@ -445,25 +587,37 @@ require_once __DIR__ . '/header.php';
             Feedback
         </a>
 
+
     </div>
 
 
-    <!-- COPYRIGHT -->
+    <!-- ==========================================
+         COPYRIGHT
+    =========================================== -->
 
     <h1 class="credit">
 
+
         Created by
+
 
         <span>
             OM And MAYUR
         </span>
 
+
         All Rights Reserved.
+
 
     </h1>
 
+
 </section>
 
+
+<!-- ==========================================
+     END HTML
+=========================================== -->
 
 </body>
 

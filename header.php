@@ -1,11 +1,15 @@
 <?php
 
-// Start session before ANY output
+// ==========================================
+// SESSION
+// ==========================================
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database connection
+// ==========================================
+// DATABASE CONNECTION
+// ==========================================
 require_once __DIR__ . '/conn.php';
 
 ?>
@@ -20,26 +24,46 @@ require_once __DIR__ . '/conn.php';
 
     <title>Appointment Doctor</title>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- ==========================================
+         FONT AWESOME
+    =========================================== -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet"
-          href="/img/AppointDoc/css/style.css">
+    <!-- ==========================================
+         CUSTOM CSS
+         Your CSS files are inside /img/AppointDoc/
+    =========================================== -->
 
-    <link rel="stylesheet"
-          href="/img/AppointDoc/css/navbar.css">
+    <link
+        rel="stylesheet"
+        href="/img/AppointDoc/css/style.css"
+    >
 
-    <link rel="stylesheet"
-          href="/img/AppointDoc/css/profilelogo2.css">
+    <link
+        rel="stylesheet"
+        href="/img/AppointDoc/css/navbar.css"
+    >
 
-    <!-- jQuery -->
+    <link
+        rel="stylesheet"
+        href="/img/AppointDoc/css/profilelogo2.css"
+    >
+
+    <!-- ==========================================
+         JQUERY
+    =========================================== -->
+
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js">
     </script>
 
-    <!-- Custom JS -->
+    <!-- ==========================================
+         CUSTOM JAVASCRIPT
+    =========================================== -->
+
     <script src="/img/AppointDoc/js/main.js"></script>
 
     <script src="/img/AppointDoc/js/java.js"></script>
@@ -59,16 +83,21 @@ require_once __DIR__ . '/conn.php';
 
 <header style="box-shadow: .1rem .3rem rgba(0, 0, 0, .3);">
 
-    <!-- LOGO -->
+    <!-- ==========================================
+         LOGO
+    =========================================== -->
 
-    <a href="/img/AppointDoc/index.php" class="logo">
-
+    <a
+        href="/img/AppointDoc/index.php"
+        class="logo"
+    >
         <span>A</span>ppoint <span>D</span>oc.
-
     </a>
 
 
-    <!-- NAVBAR -->
+    <!-- ==========================================
+         NAVBAR
+    =========================================== -->
 
     <nav class="navbar">
 
@@ -77,40 +106,46 @@ require_once __DIR__ . '/conn.php';
             <!-- HOME -->
 
             <li>
+
                 <a href="/img/AppointDoc/index.php">
                     Home
                 </a>
+
             </li>
 
 
             <!-- ABOUT -->
 
             <li>
+
                 <a href="/img/AppointDoc/about.php">
                     About Us
                 </a>
+
             </li>
 
 
-            <!-- SPECIALIST -->
+            <!-- ==========================================
+                 DOCTOR SPECIALIST
+            =========================================== -->
 
             <li>
 
                 <div class="dropdown">
 
                     <button
-                        type="button"
                         onclick="myFunction()"
-                        class="dropbtn">
-
+                        class="dropbtn"
+                        type="button"
+                    >
                         Dr. Specialist
-
                     </button>
 
 
                     <div
                         id="myDropdown"
-                        class="dropdown-content">
+                        class="dropdown-content"
+                    >
 
                         <?php
 
@@ -122,22 +157,26 @@ require_once __DIR__ . '/conn.php';
 
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 
-                                $id = (int)($row['ID'] ?? 0);
+                                $specializationId =
+                                    isset($row['ID'])
+                                    ? (int)$row['ID']
+                                    : 0;
 
-                                $specialization = htmlspecialchars(
-                                    $row['Specialization'] ?? '',
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                );
+                                $specializationName =
+                                    htmlspecialchars(
+                                        $row['Specialization'] ?? '',
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    );
 
-                                if ($id > 0) {
+                                if ($specializationId > 0) {
 
                                     ?>
 
-                                    <a href="/img/AppointDoc/dr.php?id=<?php echo $id; ?>">
-
-                                        <?php echo $specialization; ?>
-
+                                    <a
+                                        href="/img/AppointDoc/dr.php?id=<?php echo $specializationId; ?>"
+                                    >
+                                        <?php echo $specializationName; ?>
                                     </a>
 
                                     <?php
@@ -165,10 +204,10 @@ require_once __DIR__ . '/conn.php';
 
             <li>
 
-                <a href="/img/AppointDoc/appointment/check-appointment.php">
-
+                <a
+                    href="/img/AppointDoc/appointment/check-appointment.php"
+                >
                     Check Appointment
-
                 </a>
 
             </li>
@@ -178,10 +217,10 @@ require_once __DIR__ . '/conn.php';
 
             <li>
 
-                <a href="/img/AppointDoc/appointment/bookappointment.php">
-
+                <a
+                    href="/img/AppointDoc/appointment/bookappointment.php"
+                >
                     Book Appointment
-
                 </a>
 
             </li>
@@ -192,9 +231,7 @@ require_once __DIR__ . '/conn.php';
             <li>
 
                 <a href="/img/AppointDoc/feedback.php">
-
                     Feedback
-
                 </a>
 
             </li>
@@ -204,22 +241,26 @@ require_once __DIR__ . '/conn.php';
 
             <li>
 
-                <a href="/img/AppointDoc/appointment/dr_pannel/login.php">
-
+                <a
+                    href="/img/AppointDoc/appointment/dr_pannel/login.php"
+                >
                     Dr Panel
-
                 </a>
 
             </li>
 
 
-            <!-- USER PROFILE -->
+            <!-- ==========================================
+                 USER PROFILE
+            =========================================== -->
 
             <li>
 
                 <?php if (!isset($_SESSION['user_name'])): ?>
 
-                    <!-- NOT LOGGED IN -->
+                    <!-- ==================================
+                         NOT LOGGED IN
+                    =================================== -->
 
                     <div>
 
@@ -233,7 +274,8 @@ require_once __DIR__ . '/conn.php';
 
                         <div
                             class="sub-menu-wrap"
-                            id="subMenu">
+                            id="subMenu"
+                        >
 
                             <div class="sub-menu">
 
@@ -245,6 +287,7 @@ require_once __DIR__ . '/conn.php';
 
                                 </div>
 
+
                                 <hr>
 
 
@@ -252,7 +295,8 @@ require_once __DIR__ . '/conn.php';
 
                                 <a
                                     href="/img/AppointDoc/login/login_form.php"
-                                    class="sub-menu-link">
+                                    class="sub-menu-link"
+                                >
 
                                     <img
                                         src="/img/AppointDoc/drimages/profile.png"
@@ -263,7 +307,7 @@ require_once __DIR__ . '/conn.php';
                                         Profile
                                     </p>
 
-                                    <span>></span>
+                                    <span>&gt;</span>
 
                                 </a>
 
@@ -272,7 +316,8 @@ require_once __DIR__ . '/conn.php';
 
                                 <a
                                     href="/img/AppointDoc/login/login_form.php"
-                                    class="sub-menu-link">
+                                    class="sub-menu-link"
+                                >
 
                                     <img
                                         src="/img/AppointDoc/drimages/setting.png"
@@ -283,7 +328,7 @@ require_once __DIR__ . '/conn.php';
                                         Settings
                                     </p>
 
-                                    <span>></span>
+                                    <span>&gt;</span>
 
                                 </a>
 
@@ -292,7 +337,8 @@ require_once __DIR__ . '/conn.php';
 
                                 <a
                                     href="/img/AppointDoc/login/login_form.php"
-                                    class="sub-menu-link">
+                                    class="sub-menu-link"
+                                >
 
                                     <img
                                         src="/img/AppointDoc/drimages/login1.png"
@@ -303,7 +349,7 @@ require_once __DIR__ . '/conn.php';
                                         Login
                                     </p>
 
-                                    <span>></span>
+                                    <span>&gt;</span>
 
                                 </a>
 
@@ -316,11 +362,14 @@ require_once __DIR__ . '/conn.php';
 
                 <?php else: ?>
 
-                    <!-- LOGGED IN -->
+
+                    <!-- ==================================
+                         LOGGED IN
+                    =================================== -->
 
                     <?php
 
-                    $userName = $_SESSION['user_name'];
+                    $userName = $_SESSION['user_name'] ?? '';
 
                     ?>
 
@@ -336,9 +385,11 @@ require_once __DIR__ . '/conn.php';
 
                         <div
                             class="sub-menu-wrap"
-                            id="subMenu">
+                            id="subMenu"
+                        >
 
                             <div class="sub-menu">
+
 
                                 <div class="user-info">
 
@@ -358,6 +409,7 @@ require_once __DIR__ . '/conn.php';
 
                                 </div>
 
+
                                 <hr>
 
 
@@ -365,7 +417,8 @@ require_once __DIR__ . '/conn.php';
 
                                 <a
                                     href="/img/AppointDoc/user.php"
-                                    class="sub-menu-link">
+                                    class="sub-menu-link"
+                                >
 
                                     <img
                                         src="/img/AppointDoc/drimages/profile.png"
@@ -376,7 +429,7 @@ require_once __DIR__ . '/conn.php';
                                         Profile
                                     </p>
 
-                                    <span>></span>
+                                    <span>&gt;</span>
 
                                 </a>
 
@@ -385,7 +438,8 @@ require_once __DIR__ . '/conn.php';
 
                                 <a
                                     href="/img/AppointDoc/setting.php"
-                                    class="sub-menu-link">
+                                    class="sub-menu-link"
+                                >
 
                                     <img
                                         src="/img/AppointDoc/drimages/setting.png"
@@ -396,7 +450,7 @@ require_once __DIR__ . '/conn.php';
                                         Settings
                                     </p>
 
-                                    <span>></span>
+                                    <span>&gt;</span>
 
                                 </a>
 
@@ -405,7 +459,8 @@ require_once __DIR__ . '/conn.php';
 
                                 <a
                                     href="/img/AppointDoc/login/logout.php"
-                                    class="sub-menu-link">
+                                    class="sub-menu-link"
+                                >
 
                                     <img
                                         src="/img/AppointDoc/drimages/logout.png"
@@ -416,7 +471,7 @@ require_once __DIR__ . '/conn.php';
                                         Logout
                                     </p>
 
-                                    <span>></span>
+                                    <span>&gt;</span>
 
                                 </a>
 
@@ -435,13 +490,17 @@ require_once __DIR__ . '/conn.php';
     </nav>
 
 
-    <!-- MOBILE MENU -->
+    <!-- ==========================================
+         MOBILE MENU
+    =========================================== -->
 
     <div class="fas fa-bars"></div>
 
 </header>
 
 
-<!-- Profile JavaScript -->
+<!-- ==========================================
+     PROFILE JAVASCRIPT
+=========================================== -->
 
 <script src="/img/AppointDoc/js/profile.js"></script>
