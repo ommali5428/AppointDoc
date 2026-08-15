@@ -1,29 +1,42 @@
 <?php
 
-$conn = mysqli_connect("127.0.0.1", "root", "", "doctor", 3307);
+$dbHost = getenv('DB_HOST') ?: '127.0.0.1';
+$dbUser = getenv('DB_USER') ?: 'root';
+$dbPass = getenv('DB_PASS') ?: '';
+$dbName = getenv('DB_NAME') ?: 'doctor';
+$dbPort = (int)(getenv('DB_PORT') ?: 3306);
+
+// MySQLi
+$conn = mysqli_connect(
+    $dbHost,
+    $dbUser,
+    $dbPass,
+    $dbName,
+    $dbPort
+);
 
 if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-define('DB_HOST', '127.0.0.1');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'doctor');
-define('DB_PORT', 3307);
-
+// PDO
 try {
     $dbh = new PDO(
-        "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME,
-        DB_USER,
-        DB_PASS,
-        array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'")
+        "mysql:host={$dbHost};port={$dbPort};dbname={$dbName}",
+        $dbUser,
+        $dbPass,
+        [
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'"
+        ]
     );
 
-    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dbh->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
 
 } catch (PDOException $e) {
-    exit("Error: " . $e->getMessage());
+    exit("Database connection failed: " . $e->getMessage());
 }
 
 ?>

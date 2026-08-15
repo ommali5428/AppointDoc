@@ -1,5 +1,4 @@
- <!DOCTYPE html>
-  
+ 
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -9,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/conn.php';
 
 ?>
- 
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
