@@ -112,7 +112,7 @@ require_once __DIR__ . '/header.php';
             while ($row = mysqli_fetch_assoc($result)) {
 
                 // ==================================
-                // SAFE VALUES
+                // SPECIALIZATION ID
                 // ==================================
 
                 $specializationId =
@@ -120,6 +120,10 @@ require_once __DIR__ . '/header.php';
                     ? (int)$row['ID']
                     : 0;
 
+
+                // ==================================
+                // SPECIALIZATION NAME
+                // ==================================
 
                 $specializationName =
                     htmlspecialchars(
@@ -129,15 +133,9 @@ require_once __DIR__ . '/header.php';
                     );
 
 
-                /*
-                 * IMPORTANT:
-                 *
-                 * Your database currently has NULL/empty
-                 * values in the Image column.
-                 *
-                 * Therefore we DO NOT pass NULL to
-                 * htmlspecialchars().
-                 */
+                // ==================================
+                // GET IMAGE NAME
+                // ==================================
 
                 $imageName =
                     isset($row['Image'])
@@ -146,24 +144,86 @@ require_once __DIR__ . '/header.php';
 
 
                 // ==================================
+                // CLEAN OLD IMAGE PATHS
+                // ==================================
+
+                if ($imageName !== '') {
+
+                    // Convert Windows slashes
+                    $imageName = str_replace(
+                        '\\',
+                        '/',
+                        $imageName
+                    );
+
+
+                    // Remove old complete path
+                    $imageName = str_replace(
+                        '/img/AppointDoc/drimages/',
+                        '',
+                        $imageName
+                    );
+
+
+                    // Remove old path without starting /
+                    $imageName = str_replace(
+                        'img/AppointDoc/drimages/',
+                        '',
+                        $imageName
+                    );
+
+
+                    // Remove /drimages/
+                    $imageName = preg_replace(
+                        '#^/?drimages/#i',
+                        '',
+                        $imageName
+                    );
+
+
+                    // Remove leading slash
+                    $imageName = ltrim(
+                        $imageName,
+                        '/'
+                    );
+
+
+                    // Remove spaces from beginning/end
+                    $imageName = trim($imageName);
+
+                }
+
+
+                // ==================================
                 // IMAGE PATH
                 // ==================================
 
                 $imagePath = '';
 
+
                 if ($imageName !== '') {
 
                     $imagePath =
                         '/drimages/' .
-                        rawurlencode($imageName);
+                        implode(
+                            '/',
+                            array_map(
+                                'rawurlencode',
+                                explode('/', $imageName)
+                            )
+                        );
 
                 }
+
 
                 ?>
 
                 <div class="box">
 
-                    <!-- SPECIALIST IMAGE -->
+
+                    <!-- ==================================
+                         SPECIALIST IMAGE
+                    =================================== -->
 
                     <a
                         href="/dr.php?id=<?php echo $specializationId; ?>"
@@ -172,16 +232,46 @@ require_once __DIR__ . '/header.php';
                         <?php if ($imagePath !== ''): ?>
 
                             <img
-                                src="<?php echo $imagePath; ?>"
+                                src="<?php echo htmlspecialchars(
+                                    $imagePath,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ); ?>"
                                 alt="<?php echo $specializationName; ?>"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                             >
+
+
+                            <!-- FALLBACK IF IMAGE DOES NOT LOAD -->
+
+                            <div
+                                style="
+                                    width:100%;
+                                    min-height:180px;
+                                    display:none;
+                                    align-items:center;
+                                    justify-content:center;
+                                    background:#f5f5f5;
+                                    border-radius:8px;
+                                "
+                            >
+
+                                <i
+                                    class="fas fa-user-doctor"
+                                    style="
+                                        font-size:70px;
+                                        color:#0188df;
+                                    "
+                                ></i>
+
+                            </div>
+
 
                         <?php else: ?>
 
-                            <!--
-                                No image exists in database.
-                                Do not show a broken image.
-                            -->
+                            <!-- ==================================
+                                 NO IMAGE IN DATABASE
+                            =================================== -->
 
                             <div
                                 style="
@@ -210,7 +300,9 @@ require_once __DIR__ . '/header.php';
                     </a>
 
 
-                    <!-- SPECIALIST NAME -->
+                    <!-- ==================================
+                         SPECIALIST NAME
+                    =================================== -->
 
                     <div class="content">
 
@@ -373,6 +465,7 @@ require_once __DIR__ . '/header.php';
 
                 ?>
 
+
                 <div class="box">
 
                     <i class="fas fa-quote-left"></i>
@@ -403,6 +496,7 @@ require_once __DIR__ . '/header.php';
                     </div>
 
                 </div>
+
 
                 <?php
 
@@ -435,6 +529,7 @@ require_once __DIR__ . '/header.php';
     =========================================== -->
 
     <div class="box">
+
 
         <h2 class="logo">
 
@@ -493,6 +588,7 @@ require_once __DIR__ . '/header.php';
 
             }
 
+
         } catch (PDOException $e) {
 
             echo '<p>Unable to load specialists.</p>';
@@ -509,6 +605,7 @@ require_once __DIR__ . '/header.php';
     =========================================== -->
 
     <div class="box">
+
 
         <h2 class="logo">
 
@@ -551,6 +648,7 @@ require_once __DIR__ . '/header.php';
         <a href="/feedback.php">
             Feedback
         </a>
+
 
     </div>
 
