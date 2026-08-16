@@ -1,70 +1,89 @@
+<?php
+require_once __DIR__ . '/header.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
-
-<?php
-
-	include('header.php');
-
-?>
-
-
-
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Appoint Doc</title>
+</head>
 
 <body>
 
+<section id="about" class="about">
 
-    
-<!-- about section start  -->
+    <h1 class="heading">About Facility</h1>
 
-    <section id="about" class="about">
+    <h3 class="title">Explore Our Facility</h3>
 
-        <h1 class="heading">About facility</h1>
-        <h3 class="title">explore our facility</h3>
+    <div class="box-container">
 
-        <div class="box-container">
+        <!-- APPOINTMENT BOOK -->
 
-            <!-- start here  -->
-            <div class="box">
-                <!-- about images  -->
-                <div class="images">
-                    <img src="./drimages/medical-appointment-booking-system.png" alt="">
-                </div>
-                
-                <!-- about heading & text  -->
-                <div class="content">
-                    <a href="appointment/bookappointment.php"><h3>Appointment Book</h3></a>
-                    <p>We understand how busy life can get, and we're here to make schedulling  your appointments as simple and convenient as possible.</p>
-                 
-                </div>
+        <div class="box">
+
+            <div class="images">
+
+                <img
+                    src="/drimages/medical-appointment-booking-system.png"
+                    alt="Medical Appointment Booking"
+                >
+
             </div>
-            <!-- end here  -->
 
-            
-            <!-- start here  -->
-            <div class="box">
-                <!-- about images  -->
-                <div class="images">
-                    <img src="./drimages/bookapp.jpg" alt="">
-                </div>
-                
-                <!-- about heading & text  -->
-                <div class="content">
-                    <h3>Find Best Doctor</h3>
-                    <p>Helps You Quickly Find The Best Doctor Based On Your Requirement.Find The Right Doctor Without The Hassle- Specialities.</p>
-                 
-                </div>
+            <div class="content">
+
+                <a href="/appointment/bookappointment.php">
+
+                    <h3>Appointment Book</h3>
+
+                </a>
+
+                <p>
+                    We understand how busy life can get, and we're here
+                    to make scheduling your appointments as simple and
+                    convenient as possible.
+                </p>
+
             </div>
-            <!-- end here  -->
 
-            
-            <!-- start here  -->
-            
-            <!-- end here  -->
-           </div>
-    </section>
+        </div>
 
-    <!-- about section end  -->
-	
-	</html>
+
+        <!-- FIND BEST DOCTOR -->
+
+        <div class="box">
+
+            <div class="images">
+
+                <img
+                    src="/drimages/bookapp.jpg"
+                    alt="Find Best Doctor"
+                >
+
+            </div>
+
+            <div class="content">
+
+                <h3>Find Best Doctor</h3>
+
+                <p>
+                    Helps you quickly find the best doctor based on
+                    your requirements. Find the right doctor without
+                    the hassle of searching through different
+                    specialities.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</body>
+</html>

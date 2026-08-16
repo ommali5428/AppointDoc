@@ -1,153 +1,323 @@
 <?php
 
-include('C:\xampp\htdocs\img\AppointDoc\header.php');
+require_once __DIR__ . '/header.php';
 
 
-error_reporting(0);
+// ==========================================
+// LOGIN CHECK
+// ==========================================
 
+if (
+    !isset($_SESSION['uid']) ||
+    (int)$_SESSION['uid'] <= 0
+) {
 
-if (strlen($_SESSION['uid']==0)) {
-  header('location:logout.php');
-  
-  } 
-  else{
-if(isset($_POST['submit']))
-{
-$eid=$_SESSION['uid'];
-$cpassword=md5($_POST['currentpassword']);
-$newpassword=md5($_POST['newpassword']);
-$sql ="SELECT id FROM user_form WHERE id=:eid and password=:cpassword";
-$query= $dbh -> prepare($sql);
-$query-> bindParam(':eid', $eid, PDO::PARAM_STR);
-$query-> bindParam(':cpassword', $cpassword, PDO::PARAM_STR);
-$query-> execute();
-$results = $query -> fetchAll(PDO::FETCH_OBJ);
-
-if($query -> rowCount() > 0)
-{
-$conn="update user_form set password=:newpassword where id=:eid";
-$chngpwd1 = $dbh->prepare($conn);
-$chngpwd1-> bindParam(':eid', $eid, PDO::PARAM_STR);
-$chngpwd1-> bindParam(':newpassword', $newpassword, PDO::PARAM_STR);
-$chngpwd1->execute();
-
-echo '<script>alert("Your password successully changed")</script>';
-} else {
-echo '<script>alert("Your current password is wrong")</script>';
+    header('Location: /login/logout.php');
+    exit;
 
 }
+
+
+$userId = (int)$_SESSION['uid'];
+
+
+// ==========================================
+// CHANGE PASSWORD
+// ==========================================
+
+if (isset($_POST['submit'])) {
+
+
+    $currentPassword =
+        $_POST['currentpassword'] ?? '';
+
+    $newPassword =
+        $_POST['newpassword'] ?? '';
+
+    $confirmPassword =
+        $_POST['confirmpassword'] ?? '';
+
+
+    if ($newPassword !== $confirmPassword) {
+
+        echo "<script>
+                alert(
+                    'New Password and Confirm Password do not match.'
+                );
+              </script>";
+
+    } elseif (strlen($newPassword) < 4) {
+
+        echo "<script>
+                alert(
+                    'New password must be at least 4 characters.'
+                );
+              </script>";
+
+    } else {
+
+
+        $currentHash =
+            md5($currentPassword);
+
+        $newHash =
+            md5($newPassword);
+
+
+        try {
+
+
+            $stmt = $dbh->prepare(
+                "SELECT id
+                 FROM user_form
+                 WHERE id = :id
+                 AND password = :password
+                 LIMIT 1"
+            );
+
+
+            $stmt->bindParam(
+                ':id',
+                $userId,
+                PDO::PARAM_INT
+            );
+
+            $stmt->bindParam(
+                ':password',
+                $currentHash,
+                PDO::PARAM_STR
+            );
+
+            $stmt->execute();
+
+
+            if ($stmt->fetch()) {
+
+
+                $update = $dbh->prepare(
+                    "UPDATE user_form
+                     SET password = :password
+                     WHERE id = :id"
+                );
+
+
+                $update->bindParam(
+                    ':password',
+                    $newHash,
+                    PDO::PARAM_STR
+                );
+
+                $update->bindParam(
+                    ':id',
+                    $userId,
+                    PDO::PARAM_INT
+                );
+
+
+                $update->execute();
+
+
+                echo "<script>
+                        alert(
+                            'Your password has been successfully changed.'
+                        );
+                      </script>";
+
+
+            } else {
+
+
+                echo "<script>
+                        alert(
+                            'Your current password is wrong.'
+                        );
+                      </script>";
+
+            }
+
+
+        } catch (PDOException $e) {
+
+            echo "<script>
+                    alert(
+                        'Something went wrong. Please try again.'
+                    );
+                  </script>";
+
+        }
+
+    }
+
 }
 
+?>
 
-
-  
-
-  
-  ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  
-  <title>Change Password</title>
-  
-  <link rel="stylesheet" href="/./img/AppointDoc/css/user.css"> 
-    <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/breakpoints.js/dist/breakpoints.min.js"></script>
-  <!-- endbuild -->
-  <script>
-    Breakpoints();
-  </script>
-  <script type="text/javascript">
-function checkpass()
-{
-if(document.changepassword.newpassword.value!=document.changepassword.confirmpassword.value)
-{
-alert('New Password and Confirm Password field does not match');
-document.changepassword.confirmpassword.focus();
-return false;
-}
-return true;
-}   
 
-</script>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Change Password - Appoint Doc
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/css/user.css"
+    >
+
+    <script>
+
+        function checkpass() {
+
+            const newPassword =
+                document.changepassword.newpassword.value;
+
+            const confirmPassword =
+                document.changepassword.confirmpassword.value;
+
+
+            if (
+                newPassword !== confirmPassword
+            ) {
+
+                alert(
+                    'New Password and Confirm Password do not match'
+                );
+
+                document
+                    .changepassword
+                    .confirmpassword
+                    .focus();
+
+                return false;
+
+            }
+
+
+            return true;
+
+        }
+
+    </script>
+
 </head>
-  
-<body style="background-color: white;">
-<!--============= start main area -->
-<form class="form-horizontal" onsubmit="return checkpass();" name="changepassword" method="post" style="margin-left: 15%;">
+
+<body
+    style="background-color:white;"
+>
 
 
-<!-- APP MAIN ==========-->
-<main >
-  <div class="wrap" >
-  <section class="app-content" >
-    <div class="row"  style="margin-top: 120px; ">
-     
-     
-        
-          <h1 align="center" style="padding-bottom: 10px; margin-right: 300px ">Change Password</h1>
-			   <hr/>
-          
-          
+<form
+    class="form-horizontal"
+    onsubmit="return checkpass();"
+    name="changepassword"
+    method="post"
+>
 
-              <div class="form-group">
-                <label for="exampleTextInput1" class="col-sm-3 control-label">Current Password:</label>
-                <div class="col-sm-9">
-                  <input type="password" class="form-control" name="currentpassword" id="currentpassword"required='true' style="width: 50%;">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="email2" class="col-sm-3 control-label">New Password:</label>
-                <div class="col-sm-9">
-                  <input type="password" class="form-control" name="newpassword"  class="form-control" required="true" style="width: 50%;">
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="email2" class="col-sm-3 control-label">Confirm Password:</label>
-                <div class="col-sm-9">
-                  <input type="password" class="form-control"  name="confirmpassword" id="confirmpassword"  required='true' style="width: 50%;" >
-                </div>
-              </div>
-               
-            
-              <div class="row">
-                <div class="col-sm-9 col-sm-offset-3">
-                  <input type="submit" class="button" value="Change" name="submit">
-                </div>
-              </div>
-            
-         
-       
-     
 
-    </div><!-- .row -->
-  </section><!-- #dash-content -->
-</div><!-- .wrap -->
-  
+<main>
+
+    <div class="wrap">
+
+        <section class="app-content">
+
+            <div
+                class="row"
+                style="margin-top:120px;"
+            >
+
+
+                <h1
+                    align="center"
+                    style="padding-bottom:10px;"
+                >
+                    Change Password
+                </h1>
+
+
+                <hr>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Current Password:
+                    </label>
+
+                    <input
+                        type="password"
+                        name="currentpassword"
+                        required
+                        style="width:50%;"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        New Password:
+                    </label>
+
+                    <input
+                        type="password"
+                        name="newpassword"
+                        required
+                        style="width:50%;"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Confirm Password:
+                    </label>
+
+                    <input
+                        type="password"
+                        name="confirmpassword"
+                        required
+                        style="width:50%;"
+                    >
+
+                </div>
+
+
+                <div class="row">
+
+                    <input
+                        type="submit"
+                        class="button"
+                        value="Change"
+                        name="submit"
+                    >
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+    </div>
+
 </main>
-<!--========== END app main -->
 
- 
 
-  <!-- build:js assets/js/core.min.js -->
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/jquery/dist/jquery.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel//./img/AppointDoc/appointment/dr_pannel/libs/bower/jquery-ui/jquery-ui.min.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/jQuery-Storage-API/jquery.storageapi.min.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/bootstrap-sass/assets/javascripts/bootstrap.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/jquery-slimscroll/jquery.slimscroll.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/PACE/pace.min.js"></script>
-  <!-- endbuild -->
+</form>
 
-  <!-- build:js assets/js/app.min.js -->
-  <script src="/./img/AppointDoc/appointment/dr_pannel/assets/js/library.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/assets/js/plugins.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/assets/js/app.js"></script>
-  <!-- endbuild -->
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/moment/moment.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/libs/bower/fullcalendar/dist/fullcalendar.min.js"></script>
-  <script src="/./img/AppointDoc/appointment/dr_pannel/assets/js/fullcalendar.js"></script>
-  
-   </form>
+
 </body>
+
 </html>
-  <?php  } ?>
