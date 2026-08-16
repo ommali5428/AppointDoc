@@ -1,10 +1,15 @@
 <?php
 
-include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 session_start();
-session_unset();
+
+// Remove all session variables
+$_SESSION = array();
+
+// Destroy the session
 session_destroy();
 
-header('location:/./img/AppointDoc/index.php');
+// Redirect to AppointDoc home page
+header('Location: ../index.php');
+exit();
 
 ?>
