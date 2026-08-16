@@ -1,131 +1,165 @@
 <?php
 session_start();
-error_reporting(0);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-include('C:\xampp\htdocs\img\AppointDoc\conn.php');
+/*
+|--------------------------------------------------------------------------
+| DATABASE CONNECTION
+|--------------------------------------------------------------------------
+| categories.php is inside /admin/
+| conn.php is one folder above /admin/
+*/
+require_once __DIR__ . '/../conn.php';
 
 
-// Admin login check
-if (strlen($_SESSION['admin']) == 0) {
-    header('location:logout.php');
-    exit();
+/*
+|--------------------------------------------------------------------------
+| CHECK LOGIN
+|--------------------------------------------------------------------------
+*/
+if (!isset($_SESSION['admin']) || empty($_SESSION['admin'])) {
+    header("Location: ../login/login_form.php");
+    exit;
 }
 
 
-// Insert specialization
-if (isset($_POST['insert'])) {
+/*
+|--------------------------------------------------------------------------
+| DELETE CATEGORY
+|--------------------------------------------------------------------------
+*/
+if (isset($_GET['delid'])) {
 
-    $specialization = mysqli_real_escape_string($conn, $_POST['specialization']);
+    $delid = (int) $_GET['delid'];
 
-    // Image upload
-    $images = $_FILES["images"]["name"];
-    $extension = strtolower(pathinfo($images, PATHINFO_EXTENSION));
+    if ($delid > 0) {
 
-    // Allowed extensions
-    $allowed_extension = array("jpg", "jpeg", "png", "gif");
+        $sql = "DELETE FROM tblspecialization WHERE ID = :id";
+        $stmt = $dbh->prepare($sql);
+        $stmt->bindParam(':id', $delid, PDO::PARAM_INT);
 
-    if (!in_array($extension, $allowed_extension)) {
-
-        echo "<script>
-                alert('Featured image has invalid format. Only jpg/jpeg/png/gif format allowed');
-              </script>";
-
-    } else {
-
-        // Generate unique image name
-        $images = md5($images . time()) . "." . $extension;
-
-        $uploadPath = "../drimages/" . $images;
-
-        if (move_uploaded_file($_FILES["images"]["tmp_name"], $uploadPath)) {
-
-            $sql = "INSERT INTO tblspecialization
-                    (Specialization, images)
-                    VALUES (:specialization, :images)";
-
-            $query = $dbh->prepare($sql);
-
-            $query->bindParam(
-                ':specialization',
-                $specialization,
-                PDO::PARAM_STR
-            );
-
-            $query->bindParam(
-                ':images',
-                $images,
-                PDO::PARAM_STR
-            );
-
-            $query->execute();
-
-            $lastInsertId = $dbh->lastInsertId();
-
-            if ($lastInsertId) {
-
-                echo "<script>
-                        alert('Data Inserted Successfully');
-                        window.location.href='categories.php';
-                      </script>";
-
-            } else {
-
-                echo "<script>
-                        alert('Something went wrong. Please try again');
-                      </script>";
-            }
-
-        } else {
-
+        if ($stmt->execute()) {
             echo "<script>
-                    alert('Image upload failed. Please try again');
+                    alert('Category deleted successfully');
+                    window.location.href='categories.php';
                   </script>";
+            exit;
+        } else {
+            echo "<script>alert('Something went wrong. Please try again.');</script>";
         }
     }
 }
 
-?>
 
+/*
+|--------------------------------------------------------------------------
+| FETCH CATEGORIES
+|--------------------------------------------------------------------------
+*/
+$sql = "SELECT * FROM tblspecialization ORDER BY ID DESC";
+$query = $dbh->prepare($sql);
+$query->execute();
+$categories = $query->fetchAll(PDO::FETCH_OBJ);
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
+    <meta charset="UTF-8">
+
     <title>Categories</title>
 
-    <link rel="stylesheet" href="libs/bower/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="libs/bower/animate.css/animate.min.css">
-    <link rel="stylesheet" href="libs/bower/fullcalendar/dist/fullcalendar.min.css">
-    <link rel="stylesheet" href="libs/bower/perfect-scrollbar/css/perfect-scrollbar.css">
-    <link rel="stylesheet" href="assets/css/bootstrap.css">
-    <link rel="stylesheet" href="assets/css/core.css">
-    <link rel="stylesheet" href="assets/css/app.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="libs/bower/font-awesome/css/font-awesome.min.css">
 
+    <!-- Material Design Iconic Font -->
+    <link rel="stylesheet"
+          href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+          href="assets/css/bootstrap.css">
+
+    <!-- Core -->
+    <link rel="stylesheet"
+          href="assets/css/core.css">
+
+    <!-- App -->
+    <link rel="stylesheet"
+          href="assets/css/app.css">
+
+    <!-- Animate -->
+    <link rel="stylesheet"
+          href="libs/bower/animate.css/animate.min.css">
+
+    <!-- Google Font -->
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900,300">
 
     <script src="libs/bower/breakpoints.js/dist/breakpoints.min.js"></script>
 
     <script>
-        Breakpoints();
+        if (typeof Breakpoints !== "undefined") {
+            Breakpoints();
+        }
     </script>
+
+    <style>
+
+        .category-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .action-btn {
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+    </style>
 
 </head>
 
 <body class="menubar-left menubar-unfold menubar-light theme-primary">
 
-<!-- Header -->
-<?php include_once('includes/header.php'); ?>
 
-<!-- Sidebar -->
-<?php include_once('includes/sidebar.php'); ?>
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<?php
+include_once __DIR__ . '/includes/header.php';
+?>
 
 
-<form id="basic-form" method="post" enctype="multipart/form-data">
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
 
-<!-- APP MAIN -->
+<?php
+include_once __DIR__ . '/includes/sidebar.php';
+?>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+========================================================= -->
+
 <main id="app-main" class="app-main">
 
     <div class="wrap">
@@ -138,157 +172,127 @@ if (isset($_POST['insert'])) {
 
                     <div class="widget">
 
-                        <!-- Insert Category -->
                         <header class="widget-header">
 
                             <h3 class="widget-title">
-                                Insert New Specialists Category
+                                Categories
                             </h3>
 
                         </header>
 
                         <hr class="widget-separator">
 
-                        <br>
-
-                        <header class="widget-header">
-
-                            <div class="form-group">
-
-                                <label>Enter Specialization</label>
-
-                                <input
-                                    id="specialization"
-                                    type="text"
-                                    name="specialization"
-                                    required
-                                    class="form-control"
-                                    placeholder="Enter Specialization"
-                                    style="width: 70%;">
-
-                            </div>
-
-
-                            <div class="form-group">
-
-                                <label>Upload photo</label>
-
-                                <input
-                                    id="images"
-                                    type="file"
-                                    name="images"
-                                    required
-                                    class="form-control"
-                                    accept=".jpg,.jpeg,.png,.gif"
-                                    style="width: 70%;">
-
-                            </div>
-
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary"
-                                name="insert"
-                                id="submit">
-
-                                Insert
-
-                            </button>
-
-                            <br>
-                            <hr>
-
-                        </header>
-
-
-                        <!-- Category List -->
-                        <header class="widget-header">
-
-                            <h3 class="widget-title">
-                                Specialization Categories
-                            </h3>
-
-                        </header>
-
-
                         <div class="widget-body">
 
                             <div class="table-responsive">
 
-                                <table class="table table-bordered table-hover js-basic-example dataTable table-custom">
+                                <table class="table table-bordered table-striped">
 
                                     <thead>
 
                                         <tr>
 
-                                            <th>ID</th>
+                                            <th width="70">
+                                                #
+                                            </th>
 
-                                            <th>Specialization</th>
+                                            <th width="120">
+                                                Photo
+                                            </th>
 
-                                            <th>Action</th>
+                                            <th>
+                                                Specialization
+                                            </th>
+
+                                            <th width="220">
+                                                Action
+                                            </th>
 
                                         </tr>
 
                                     </thead>
 
-
                                     <tbody>
 
                                     <?php
 
-                                    $sql = "SELECT * FROM tblspecialization";
+                                    if (count($categories) > 0) {
 
-                                    $query = $dbh->prepare($sql);
-                                    $query->execute();
+                                        $cnt = 1;
 
-                                    $results = $query->fetchAll(PDO::FETCH_OBJ);
-
-                                    $cnt = 1;
-
-                                    if ($query->rowCount() > 0) {
-
-                                        foreach ($results as $row) {
+                                        foreach ($categories as $row) {
 
                                     ?>
 
                                         <tr>
 
                                             <td>
-                                                <?php echo htmlentities($row->ID); ?>
+                                                <?php echo $cnt; ?>
                                             </td>
+
 
                                             <td>
-                                                <?php echo htmlentities($row->Specialization); ?>
+
+                                                <?php
+
+                                                $image = !empty($row->images)
+                                                    ? $row->images
+                                                    : '';
+
+                                                $imagePath = "../drimages/" . $image;
+
+                                                ?>
+
+                                                <?php if (!empty($image)): ?>
+
+                                                    <img
+                                                        src="<?php echo htmlspecialchars($imagePath); ?>"
+                                                        class="category-image"
+                                                        alt="Category">
+
+                                                <?php else: ?>
+
+                                                    <span>
+                                                        No Image
+                                                    </span>
+
+                                                <?php endif; ?>
+
                                             </td>
 
 
-                                            <td style="width: 300px;">
+                                            <td>
 
-                                                <center>
+                                                <?php
+                                                echo htmlspecialchars(
+                                                    $row->Specialization
+                                                );
+                                                ?>
 
-                                                    <a href="/./img/AppointDoc/admin/updatecat.php?upid=<?php echo (int)$row->ID; ?>">
+                                            </td>
 
-                                                        <input
-                                                            type="button"
-                                                            value="Edit"
-                                                            class="btn btn-primary"
-                                                            style="width: 80px;">
 
-                                                    </a>
+                                            <td>
 
-                                                    &nbsp;
+                                                <a
+                                                    href="updatecat.php?upid=<?php echo (int)$row->ID; ?>"
+                                                    class="btn btn-primary action-btn">
 
-                                                    <a href="/./img/AppointDoc/admin/deletecat.php?deleteid=<?php echo (int)$row->ID; ?>">
+                                                    <i class="fa fa-edit"></i>
+                                                    Edit
 
-                                                        <input
-                                                            type="button"
-                                                            value="Delete"
-                                                            class="btn btn-primary"
-                                                            style="width: 80px;">
+                                                </a>
 
-                                                    </a>
 
-                                                </center>
+                                                <a
+                                                    href="categories.php?delid=<?php echo (int)$row->ID; ?>"
+                                                    class="btn btn-danger action-btn"
+                                                    onclick="return confirm('Are you sure you want to delete this category?');">
+
+                                                    <i class="fa fa-trash"></i>
+                                                    Delete
+
+                                                </a>
 
                                             </td>
 
@@ -306,8 +310,12 @@ if (isset($_POST['insert'])) {
 
                                         <tr>
 
-                                            <td colspan="3">
-                                                No record found
+                                            <td
+                                                colspan="4"
+                                                class="empty-message">
+
+                                                No categories found.
+
                                             </td>
 
                                         </tr>
@@ -337,31 +345,45 @@ if (isset($_POST['insert'])) {
     </div>
 
 
-    <!-- APP FOOTER -->
-    <?php include_once('includes/footer.php'); ?>
+    <!-- FOOTER -->
+
+    <?php
+    include_once __DIR__ . '/includes/footer.php';
+    ?>
 
 </main>
 
 
-<!-- JavaScript -->
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
 
 <script src="libs/bower/jquery/dist/jquery.js"></script>
+
 <script src="libs/bower/jquery-ui/jquery-ui.min.js"></script>
+
 <script src="libs/bower/jQuery-Storage-API/jquery.storageapi.min.js"></script>
+
 <script src="libs/bower/bootstrap-sass/assets/javascripts/bootstrap.js"></script>
+
 <script src="libs/bower/jquery-slimscroll/jquery.slimscroll.js"></script>
+
 <script src="libs/bower/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
+
 <script src="libs/bower/PACE/pace.min.js"></script>
 
 <script src="assets/js/library.js"></script>
+
 <script src="assets/js/plugins.js"></script>
+
 <script src="assets/js/app.js"></script>
 
 <script src="libs/bower/moment/moment.js"></script>
+
 <script src="libs/bower/fullcalendar/dist/fullcalendar.min.js"></script>
+
 <script src="assets/js/fullcalendar.js"></script>
 
-</form>
 
 </body>
 </html>

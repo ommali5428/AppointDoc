@@ -1,78 +1,208 @@
 <?php
+
 session_start();
-error_reporting(0);
 
-include('C:\xampp\htdocs\img\AppointDoc\conn.php');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+
+/*
+|--------------------------------------------------------------------------
+| DATABASE CONNECTION
+|--------------------------------------------------------------------------
+| doctorprofile.php is inside /admin/
+| conn.php is one folder above /admin/
+*/
+
+require_once __DIR__ . '/../conn.php';
+
+
+/*
+|--------------------------------------------------------------------------
+| CHECK LOGIN
+|--------------------------------------------------------------------------
+*/
+
+if (!isset($_SESSION['admin']) || empty($_SESSION['admin'])) {
+
+    header("Location: ../login/login_form.php");
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FETCH DOCTORS
+|--------------------------------------------------------------------------
+*/
+
+$sql = "
+    SELECT
+        d.ID,
+        d.FullName,
+        d.MobileNumber,
+        d.Email,
+        d.Specialization,
+        d.qualification,
+        d.experience,
+        d.hospital_detail,
+        d.timing,
+        d.images,
+        s.Specialization AS SpecializationName
+    FROM tbldoctor d
+    LEFT JOIN tblspecialization s
+        ON d.Specialization = s.ID
+    ORDER BY d.ID DESC
+";
+
+$query = $dbh->prepare($sql);
+
+$query->execute();
+
+$doctors = $query->fetchAll(PDO::FETCH_OBJ);
+
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-    <title>Doctors Profile</title>
+    <meta charset="UTF-8">
 
-    <style>
-        table {
-            border: solid 2px black;
-        }
+    <title>Doctor Profile</title>
 
-        td {
-            border: solid 2px black;
-            vertical-align: middle !important;
-        }
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        th {
-            border: solid 2px black;
-            text-align: center;
-            vertical-align: middle !important;
-        }
 
-        .doctor-image {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .action-btn {
-            width: 80px;
-        }
-    </style>
-
-    <link rel="stylesheet" href="libs/bower/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
-
-    <!-- build:css assets/css/app.min.css -->
-    <link rel="stylesheet" href="libs/bower/animate.css/animate.min.css">
-    <link rel="stylesheet" href="libs/bower/fullcalendar/dist/fullcalendar.min.css">
-    <link rel="stylesheet" href="libs/bower/perfect-scrollbar/css/perfect-scrollbar.css">
-    <link rel="stylesheet" href="assets/css/bootstrap.css">
-    <link rel="stylesheet" href="assets/css/core.css">
-    <link rel="stylesheet" href="assets/css/app.css">
-    <!-- endbuild -->
+    <!-- Font Awesome -->
 
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900,300">
+          href="libs/bower/font-awesome/css/font-awesome.min.css">
+
+
+    <!-- Material Design -->
+
+    <link rel="stylesheet"
+          href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
+
+
+    <!-- Bootstrap -->
+
+    <link rel="stylesheet"
+          href="assets/css/bootstrap.css">
+
+
+    <!-- Core -->
+
+    <link rel="stylesheet"
+          href="assets/css/core.css">
+
+
+    <!-- App -->
+
+    <link rel="stylesheet"
+          href="assets/css/app.css">
+
+
+    <!-- Animate -->
+
+    <link rel="stylesheet"
+          href="libs/bower/animate.css/animate.min.css">
+
+
+    <!-- Google Font -->
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900,300">
+
 
     <script src="libs/bower/breakpoints.js/dist/breakpoints.min.js"></script>
 
     <script>
-        Breakpoints();
+
+        if (typeof Breakpoints !== "undefined") {
+            Breakpoints();
+        }
+
     </script>
+
+
+    <style>
+
+        .doctor-image {
+
+            width: 80px;
+
+            height: 80px;
+
+            object-fit: cover;
+
+            border-radius: 50%;
+
+            border: 2px solid #ddd;
+
+        }
+
+
+        .action-btn {
+
+            margin-right: 5px;
+
+            margin-bottom: 5px;
+
+        }
+
+
+        .empty-message {
+
+            text-align: center;
+
+            padding: 30px;
+
+            color: #777;
+
+        }
+
+
+        .table-responsive {
+
+            overflow-x: auto;
+
+        }
+
+    </style>
 
 </head>
 
+
 <body class="menubar-left menubar-unfold menubar-light theme-primary">
 
-<!--============= start main area =============-->
 
-<?php include_once('includes/header.php'); ?>
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-<?php include_once('includes/sidebar.php'); ?>
+<?php
+
+include_once __DIR__ . '/includes/header.php';
+
+?>
 
 
-<!-- APP MAIN ==========-->
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<?php
+
+include_once __DIR__ . '/includes/sidebar.php';
+
+?>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
 
 <main id="app-main" class="app-main">
 
@@ -86,15 +216,19 @@ include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
                     <div class="widget">
 
+
                         <!-- HEADER -->
 
                         <header class="widget-header">
 
                             <h3 class="widget-title">
-                                Doctors Profile
+
+                                Doctor Profile
+
                             </h3>
 
                         </header>
+
 
                         <hr class="widget-separator">
 
@@ -105,27 +239,56 @@ include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
                             <div class="table-responsive">
 
-                                <table class="table table-bordered table-hover js-basic-example dataTable table-custom">
+
+                                <table class="table table-bordered table-striped">
 
                                     <thead>
 
                                         <tr>
 
-                                            <th>Name</th>
+                                            <th>
+                                                #
+                                            </th>
 
-                                            <th>Qualification</th>
+                                            <th>
+                                                Photo
+                                            </th>
 
-                                            <th>Experience</th>
+                                            <th>
+                                                Name
+                                            </th>
 
-                                            <th>Hospital Detail</th>
+                                            <th>
+                                                Mobile
+                                            </th>
 
-                                            <th>Timing</th>
+                                            <th>
+                                                Email
+                                            </th>
 
-                                            <th>Specialist</th>
+                                            <th>
+                                                Specialization
+                                            </th>
 
-                                            <th>Images</th>
+                                            <th>
+                                                Qualification
+                                            </th>
 
-                                            <th>Action</th>
+                                            <th>
+                                                Experience
+                                            </th>
+
+                                            <th>
+                                                Hospital
+                                            </th>
+
+                                            <th>
+                                                Timing
+                                            </th>
+
+                                            <th>
+                                                Action
+                                            </th>
 
                                         </tr>
 
@@ -134,178 +297,244 @@ include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
                                     <tbody>
 
+
                                     <?php
 
-                                    /*
-                                     * Get all doctors and their specialization
-                                     */
+                                    if (count($doctors) > 0) {
 
-                                    $query = "
-                                        SELECT
-                                            d.ID,
-                                            d.FullName,
-                                            d.qualification,
-                                            d.experience,
-                                            d.hospital_detail,
-                                            d.timing,
-                                            d.images,
-                                            s.Specialization
-                                        FROM tbldoctor d
-                                        LEFT JOIN tblspecialization s
-                                            ON d.Specialization = s.ID
-                                        ORDER BY d.ID DESC
-                                    ";
-
-                                    $result = mysqli_query($conn, $query);
+                                        $cnt = 1;
 
 
-                                    if ($result && mysqli_num_rows($result) > 0) {
-
-                                        while ($row = mysqli_fetch_assoc($result)) {
+                                        foreach ($doctors as $row) {
 
                                     ?>
 
+
                                         <tr>
 
-                                            <!-- Doctor Name -->
 
-                                            <td>
-                                                <?php
-                                                echo htmlentities($row['FullName']);
-                                                ?>
-                                            </td>
-
-
-                                            <!-- Qualification -->
-
-                                            <td>
-                                                <?php
-                                                echo htmlentities($row['qualification']);
-                                                ?>
-                                            </td>
-
-
-                                            <!-- Experience -->
-
-                                            <td>
-                                                <?php
-                                                echo htmlentities($row['experience']);
-                                                ?>
-                                            </td>
-
-
-                                            <!-- Hospital -->
-
-                                            <td>
-                                                <?php
-                                                echo htmlentities($row['hospital_detail']);
-                                                ?>
-                                            </td>
-
-
-                                            <!-- Timing -->
-
-                                            <td>
-                                                <?php
-                                                echo htmlentities($row['timing']);
-                                                ?>
-                                            </td>
-
-
-                                            <!-- Specialization -->
+                                            <!-- NUMBER -->
 
                                             <td>
 
                                                 <?php
-
-                                                if (!empty($row['Specialization'])) {
-
-                                                    echo htmlentities($row['Specialization']);
-
-                                                } else {
-
-                                                    echo "Not Available";
-
-                                                }
-
+                                                echo $cnt;
                                                 ?>
 
                                             </td>
 
 
-                                            <!-- Doctor Image -->
+                                            <!-- PHOTO -->
 
-                                            <td style="text-align:center;">
+                                            <td>
 
                                                 <?php
 
-                                                if (!empty($row['images'])) {
+                                                $image = !empty($row->images)
+                                                    ? $row->images
+                                                    : '';
+
+                                                $imagePath =
+                                                    "../images/" . $image;
 
                                                 ?>
+
+
+                                                <?php if (!empty($image)): ?>
 
                                                     <img
-                                                        src="/img/AppointDoc/appointment/dr_pannel/images/<?php echo htmlentities($row['images']); ?>"
+                                                        src="<?php echo htmlspecialchars($imagePath); ?>"
                                                         class="doctor-image"
-                                                        alt="Doctor Image"
-                                                    >
+                                                        alt="Doctor">
+
+
+                                                <?php else: ?>
+
+                                                    <span>
+                                                        No Image
+                                                    </span>
+
+                                                <?php endif; ?>
+
+
+                                            </td>
+
+
+                                            <!-- NAME -->
+
+                                            <td>
 
                                                 <?php
 
-                                                } else {
-
-                                                    echo "No Image";
-
-                                                }
+                                                echo htmlspecialchars(
+                                                    $row->FullName
+                                                );
 
                                                 ?>
 
                                             </td>
 
 
-                                            <!-- Action -->
+                                            <!-- MOBILE -->
 
-                                            <td style="width:185px; text-align:center;">
+                                            <td>
 
-                                                <!-- EDIT -->
+                                                <?php
 
-                                                <a
-                                                    href="/img/AppointDoc/admin/updatedr.php?upid=<?php echo (int)$row['ID']; ?>"
-                                                    class="btn btn-primary action-btn"
-                                                >
-                                                    Edit
-                                                </a>
+                                                echo htmlspecialchars(
+                                                    $row->MobileNumber
+                                                );
 
-
-                                                <br>
-                                                <br>
-
-
-                                                <!-- DELETE -->
-
-                                                <a
-                                                    href="/img/AppointDoc/admin/deletedr.php?deleteid=<?php echo (int)$row['ID']; ?>"
-                                                    class="btn btn-danger action-btn"
-                                                    onclick="return confirm('Are you sure you want to delete this doctor?');"
-                                                >
-                                                    Delete
-                                                </a>
+                                                ?>
 
                                             </td>
+
+
+                                            <!-- EMAIL -->
+
+                                            <td>
+
+                                                <?php
+
+                                                echo htmlspecialchars(
+                                                    $row->Email
+                                                );
+
+                                                ?>
+
+                                            </td>
+
+
+                                            <!-- SPECIALIZATION -->
+
+                                            <td>
+
+                                                <?php
+
+                                                echo htmlspecialchars(
+                                                    $row->SpecializationName
+                                                    ?? 'Not Available'
+                                                );
+
+                                                ?>
+
+                                            </td>
+
+
+                                            <!-- QUALIFICATION -->
+
+                                            <td>
+
+                                                <?php
+
+                                                echo htmlspecialchars(
+                                                    $row->qualification
+                                                    ?? ''
+                                                );
+
+                                                ?>
+
+                                            </td>
+
+
+                                            <!-- EXPERIENCE -->
+
+                                            <td>
+
+                                                <?php
+
+                                                echo htmlspecialchars(
+                                                    $row->experience
+                                                    ?? ''
+                                                );
+
+                                                ?>
+
+                                            </td>
+
+
+                                            <!-- HOSPITAL -->
+
+                                            <td>
+
+                                                <?php
+
+                                                echo htmlspecialchars(
+                                                    $row->hospital_detail
+                                                    ?? ''
+                                                );
+
+                                                ?>
+
+                                            </td>
+
+
+                                            <!-- TIMING -->
+
+                                            <td>
+
+                                                <?php
+
+                                                echo htmlspecialchars(
+                                                    $row->timing
+                                                    ?? ''
+                                                );
+
+                                                ?>
+
+                                            </td>
+
+
+                                            <!-- ACTION -->
+
+                                            <td>
+
+
+                                                <a
+                                                    href="updatedr.php?upid=<?php echo (int)$row->ID; ?>"
+                                                    class="btn btn-primary action-btn">
+
+                                                    <i class="fa fa-edit"></i>
+
+                                                    Edit
+
+                                                </a>
+
+
+                                                <a
+                                                    href="changephoto.php?pid=<?php echo (int)$row->ID; ?>"
+                                                    class="btn btn-info action-btn">
+
+                                                    <i class="fa fa-image"></i>
+
+                                                    Photo
+
+                                                </a>
+
+
+                                            </td>
+
 
                                         </tr>
 
 
                                     <?php
 
+                                            $cnt++;
+
                                         }
+
 
                                     } else {
 
                                     ?>
 
+
                                         <tr>
 
-                                            <td colspan="8" style="text-align:center;">
+                                            <td
+                                                colspan="11"
+                                                class="empty-message">
 
                                                 No doctors found.
 
@@ -313,51 +542,51 @@ include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
                                         </tr>
 
+
                                     <?php
 
                                     }
 
                                     ?>
 
+
                                     </tbody>
 
                                 </table>
 
+
                             </div>
 
                         </div>
-                        <!-- END widget-body -->
+
 
                     </div>
-                    <!-- END widget -->
 
                 </div>
-                <!-- END column -->
 
             </div>
-            <!-- END row -->
 
         </section>
-        <!-- END app-content -->
 
     </div>
-    <!-- END wrap -->
 
 
-    <!-- APP FOOTER -->
+    <!-- FOOTER -->
 
-    <?php include_once('includes/footer.php'); ?>
+    <?php
 
-    <!-- /#app-footer -->
+    include_once __DIR__ . '/includes/footer.php';
+
+    ?>
+
 
 </main>
 
-<!--========== END app main ==========-->
 
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
 
-<!-- JAVASCRIPT -->
-
-<!-- build:js assets/js/core.min.js -->
 
 <script src="libs/bower/jquery/dist/jquery.js"></script>
 
@@ -373,18 +602,12 @@ include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
 <script src="libs/bower/PACE/pace.min.js"></script>
 
-<!-- endbuild -->
-
-
-<!-- build:js assets/js/app.min.js -->
 
 <script src="assets/js/library.js"></script>
 
 <script src="assets/js/plugins.js"></script>
 
 <script src="assets/js/app.js"></script>
-
-<!-- endbuild -->
 
 
 <script src="libs/bower/moment/moment.js"></script>
