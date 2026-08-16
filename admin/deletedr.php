@@ -1,28 +1,31 @@
-<?php 
-include('C:\xampp\htdocs\img\AppointDoc\conn.php');
+<?php
+
 session_start();
+include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
+if (isset($_GET['deleteid'])) {
 
+    $id = intval($_GET['deleteid']);
 
-if(isset($_GET['deleteid']))
-{
-	$id=$_GET['deleteid'];
-		$query="delete from tbldoctor where ID=$id";
-		$result = mysqli_query($conn, $query);
-		if($result)
-		{
-			header('location:doctorprofile.php');
-			
-		}
-		else
-		{
-			die(mysqli_error($conn));
-		}
+    if ($id > 0) {
+
+        $query = "DELETE FROM tbldoctor WHERE ID = $id";
+        $result = mysqli_query($conn, $query);
+
+        if ($result) {
+            header("Location: doctorprofile.php");
+            exit();
+        } else {
+            die("Error deleting doctor: " . mysqli_error($conn));
+        }
+
+    } else {
+        die("Invalid doctor ID.");
+    }
+
+} else {
+    header("Location: doctorprofile.php");
+    exit();
 }
-
-
-
-
-
 
 ?>

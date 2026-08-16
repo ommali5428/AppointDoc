@@ -1,247 +1,689 @@
 <?php
 session_start();
 error_reporting(0);
-//include('includes/dbconnection.php');
+
 include('C:\xampp\htdocs\img\AppointDoc\conn.php');
 
- if(isset($_POST['submit']))
-  { 
-    $eid=$_GET['editid'];
-    $aptid=$_GET['aptid'];
-    $status=$_POST['status'];
-   $remark=$_POST['remark'];
-      $sql= "update tblappointment set Status=:status,Remark=:remark where ID=:eid";
-    $query=$dbh->prepare($sql);
-$query->bindParam(':status',$status,PDO::PARAM_STR);
-$query->bindParam(':remark',$remark,PDO::PARAM_STR);
-$query->bindParam(':eid',$eid,PDO::PARAM_STR);
- $query->execute();
- echo '<script>alert("Remark and status has been updated")</script>';
- echo "<script>window.location.href ='all-appointment.php'</script>";
+
+/* ==============================
+   CHECK LOGIN
+============================== */
+
+if (!isset($_SESSION['admin']) || empty($_SESSION['admin'])) {
+    header('Location: logout.php');
+    exit();
 }
-  ?>
+
+
+/* ==============================
+   GET APPOINTMENT ID
+============================== */
+
+if (!isset($_GET['editid']) || !is_numeric($_GET['editid'])) {
+    header('Location: all-appointment.php');
+    exit();
+}
+
+$eid = (int)$_GET['editid'];
+
+
+/* ==============================
+   UPDATE APPOINTMENT STATUS
+============================== */
+
+if (isset($_POST['submit'])) {
+
+    $status = trim($_POST['status']);
+    $remark = trim($_POST['remark']);
+
+    /* Allowed status values */
+    $allowed_status = array('Approved', 'Cancelled');
+
+    if (!in_array($status, $allowed_status)) {
+
+        echo "<script>
+                alert('Invalid appointment status.');
+              </script>";
+
+    } elseif (empty($remark)) {
+
+        echo "<script>
+                alert('Please enter a remark.');
+              </script>";
+
+    } else {
+
+        $sql = "UPDATE tblappointment 
+                SET Status = :status,
+                    Remark = :remark
+                WHERE ID = :eid";
+
+        $query = $dbh->prepare($sql);
+
+        $query->bindParam(
+            ':status',
+            $status,
+            PDO::PARAM_STR
+        );
+
+        $query->bindParam(
+            ':remark',
+            $remark,
+            PDO::PARAM_STR
+        );
+
+        $query->bindParam(
+            ':eid',
+            $eid,
+            PDO::PARAM_INT
+        );
+
+        if ($query->execute()) {
+
+            echo "<script>
+                    alert('Remark and status have been updated successfully.');
+                    window.location.href='all-appointment.php';
+                  </script>";
+
+            exit();
+
+        } else {
+
+            echo "<script>
+                    alert('Something went wrong. Please try again.');
+                  </script>";
+        }
+    }
+}
+
+
+/* ==============================
+   FETCH APPOINTMENT
+============================== */
+
+$sql = "SELECT * 
+        FROM tblappointment 
+        WHERE ID = :eid";
+
+$query = $dbh->prepare($sql);
+
+$query->bindParam(
+    ':eid',
+    $eid,
+    PDO::PARAM_INT
+);
+
+$query->execute();
+
+$row = $query->fetch(PDO::FETCH_OBJ);
+
+
+/* ==============================
+   CHECK APPOINTMENT EXISTS
+============================== */
+
+if (!$row) {
+
+    echo "<script>
+            alert('Appointment not found.');
+            window.location.href='all-appointment.php';
+          </script>";
+
+    exit();
+}
+
+
+/* Current status */
+
+$currentStatus = $row->Status;
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-	
-	<title>View Appointment Detail</title>
-	
-	<link rel="stylesheet" href="libs/bower/font-awesome/css/font-awesome.min.css">
-	<link rel="stylesheet" href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
-	<!-- build:css assets/css/app.min.css -->
-	<link rel="stylesheet" href="libs/bower/animate.css/animate.min.css">
-	<link rel="stylesheet" href="libs/bower/fullcalendar/dist/fullcalendar.min.css">
-	<link rel="stylesheet" href="libs/bower/perfect-scrollbar/css/perfect-scrollbar.css">
-	<link rel="stylesheet" href="assets/css/bootstrap.css">
-	<link rel="stylesheet" href="assets/css/core.css">
-	<link rel="stylesheet" href="assets/css/app.css">
-	<!-- endbuild -->
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900,300">
-	<script src="libs/bower/breakpoints.js/dist/breakpoints.min.js"></script>
-	<script>
-		Breakpoints();
-	</script>
-	
+
+    <title>View Appointment Detail</title>
+
+    <link rel="stylesheet"
+          href="libs/bower/font-awesome/css/font-awesome.min.css">
+
+    <link rel="stylesheet"
+          href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
+
+    <link rel="stylesheet"
+          href="libs/bower/animate.css/animate.min.css">
+
+    <link rel="stylesheet"
+          href="libs/bower/fullcalendar/dist/fullcalendar.min.css">
+
+    <link rel="stylesheet"
+          href="libs/bower/perfect-scrollbar/css/perfect-scrollbar.css">
+
+    <link rel="stylesheet"
+          href="assets/css/bootstrap.css">
+
+    <link rel="stylesheet"
+          href="assets/css/core.css">
+
+    <link rel="stylesheet"
+          href="assets/css/app.css">
+
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Raleway:400,500,600,700,800,900,300">
+
+    <script src="libs/bower/breakpoints.js/dist/breakpoints.min.js"></script>
+
+    <script>
+        Breakpoints();
+    </script>
+
 </head>
-	
+
+
 <body class="menubar-left menubar-unfold menubar-light theme-primary">
-<!--============= start main area -->
 
 
+<!-- HEADER -->
 
-<?php include_once('includes/header.php');?>
-
-<?php include_once('includes/sidebar.php');?>
-
+<?php include_once('includes/header.php'); ?>
 
 
-<!-- APP MAIN ==========-->
+<!-- SIDEBAR -->
+
+<?php include_once('includes/sidebar.php'); ?>
+
+
+<!-- APP MAIN -->
+
 <main id="app-main" class="app-main">
-  <div class="wrap">
-	<section class="app-content">
-		<div class="row">
-			<!-- DOM dataTable -->
-			<div class="col-md-12">
-				<div class="widget">
-					<header class="widget-header">
-						<h4 class="widget-title" style="color: blue">Appointment Details</h4>
-					</header><!-- .widget-header -->
-					<hr class="widget-separator">
-					<div class="widget-body">
-						<div class="table-responsive">
-							<?php
-                  $eid=$_GET['editid'];
-$sql="SELECT * from tblappointment  where ID=:eid";
-$query = $dbh -> prepare($sql);
-$query-> bindParam(':eid', $eid, PDO::PARAM_STR);
-$query->execute();
-$results=$query->fetchAll(PDO::FETCH_OBJ);
 
-$cnt=1;
-if($query->rowCount() > 0)
-{
-foreach($results as $row)
-{               ?>
-							<table border="1" class="table table-bordered mg-b-0">
-                                            <tr>
-    <th>Appointment Number</th>
-    <td><?php  echo $aptno=($row->AppointmentNumber);?></td>
-    <th>Patient Name</th>
-    <td><?php  echo $row->Name;?></td>
-  </tr>
-  
-  <tr>
-    <th>Mobile Number</th>
-    <td><?php  echo $row->MobileNumber;?></td>
-    <th>Email</th>
-    <td><?php  echo $row->Email;?></td>
-  </tr>
-   <tr>
-    <th>Appointment Date</th>
-    <td><?php  echo $row->AppointmentDate;?></td>
-    <th>Appointment Time</th>
-    <td><?php  echo $row->AppointmentTime;?></td>
-  </tr>
-   
-  <tr>
-    <th>Apply Date</th>
-    <td><?php  echo $row->ApplyDate;?></td>
-     <th>Appointment Final Status</th>
+    <div class="wrap">
 
-    <td colspan="4"> <?php  $status=$row->Status;
-    
-if($row->Status=="")
-{
-  echo "Not yet updated";
-}
+        <section class="app-content">
 
-if($row->Status=="Approved")
-{
- echo "Your appointment has been approved";
-}
+            <div class="row">
+
+                <div class="col-md-12">
+
+                    <div class="widget">
 
 
-if($row->Status=="Cancelled")
-{
-  echo "Your appointment has been cancelled";
-}
+                        <!-- WIDGET HEADER -->
+
+                        <header class="widget-header">
+
+                            <h4 class="widget-title"
+                                style="color:blue">
+
+                                Appointment Details
+
+                            </h4>
+
+                        </header>
 
 
+                        <hr class="widget-separator">
 
-     ;?></td>
-  </tr>
-   <tr>
-    
-<th >Remark</th>
- <?php if($row->Remark==""){ ?>
 
-                     <td colspan="3"><?php echo "Not Updated Yet"; ?></td>
-<?php } else { ?>                  <td colspan="3"> <?php  echo htmlentities($row->Remark);?>
-                  </td>
-                  <?php } ?>
-   
-  </tr>
- 
-<?php $cnt=$cnt+1;}} ?>
+                        <!-- WIDGET BODY -->
 
-</table> 
-<br>
+                        <div class="widget-body">
 
- 
-<?php 
+                            <div class="table-responsive">
 
-if ($status=="" ){
-?> 
-<p align="center"  style="padding-top: 20px">                            
- <button class="btn btn-primary waves-effect waves-light w-lg" data-toggle="modal" data-target="#myModal">Take Action</button></p>  
 
-<?php } ?>
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-     <div class="modal-content">
-      <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalLabel">Take Action</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                <table class="table table-bordered table-hover data-tables">
+                                <!-- APPOINTMENT DETAILS TABLE -->
 
-                                 <form method="post" name="submit">
+                                <table class="table table-bordered">
 
-                                
-                               
-     <tr>
-    <th>Remark :</th>
-    <td>
-    <textarea name="remark" placeholder="Remark" rows="12" cols="14" class="form-control wd-450" required="true"></textarea></td>
-  </tr> 
-     
-  <tr>
-    <th>Status :</th>
-    <td>
+                                    <tr>
 
-   <select name="status" class="form-control wd-450" required="true" >
-     <option value="Approved" selected="true">Approved</option>
-     <option value="Cancelled">Cancelled</option>
-     
-   </select></td>
-  </tr>
-</table>
-</div>
-<div class="modal-footer">
- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
- <button type="submit" name="submit" class="btn btn-primary">Update</button>
-  
-  </form>
-  
+                                        <th>
+                                            Appointment Number
+                                        </th>
 
-</div>
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->AppointmentNumber
+                                            );
+                                            ?>
+                                        </td>
 
-                      
+
+                                        <th>
+                                            Patient Name
+                                        </th>
+
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->Name
+                                            );
+                                            ?>
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr>
+
+                                        <th>
+                                            Mobile Number
+                                        </th>
+
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->MobileNumber
+                                            );
+                                            ?>
+                                        </td>
+
+
+                                        <th>
+                                            Email
+                                        </th>
+
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->Email
+                                            );
+                                            ?>
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr>
+
+                                        <th>
+                                            Appointment Date
+                                        </th>
+
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->AppointmentDate
+                                            );
+                                            ?>
+                                        </td>
+
+
+                                        <th>
+                                            Appointment Time
+                                        </th>
+
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->AppointmentTime
+                                            );
+                                            ?>
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr>
+
+                                        <th>
+                                            Apply Date
+                                        </th>
+
+                                        <td>
+                                            <?php
+                                            echo htmlentities(
+                                                $row->ApplyDate
+                                            );
+                                            ?>
+                                        </td>
+
+
+                                        <th>
+                                            Appointment Final Status
+                                        </th>
+
+                                        <td>
+
+                                            <?php
+
+                                            if ($row->Status == "") {
+
+                                                echo '<span style="color:#ff9800;">
+                                                        Not Yet Updated
+                                                      </span>';
+
+                                            } elseif ($row->Status == "Approved") {
+
+                                                echo '<span style="color:green;">
+                                                        Approved
+                                                      </span>';
+
+                                            } elseif ($row->Status == "Cancelled") {
+
+                                                echo '<span style="color:red;">
+                                                        Cancelled
+                                                      </span>';
+
+                                            } else {
+
+                                                echo htmlentities(
+                                                    $row->Status
+                                                );
+                                            }
+
+                                            ?>
+
+                                        </td>
+
+                                    </tr>
+
+
+                                    <tr>
+
+                                        <th>
+                                            Remark
+                                        </th>
+
+                                        <td colspan="3">
+
+                                            <?php
+
+                                            if (empty($row->Remark)) {
+
+                                                echo '<span style="color:#999;">
+                                                        Not Updated Yet
+                                                      </span>';
+
+                                            } else {
+
+                                                echo htmlentities(
+                                                    $row->Remark
+                                                );
+
+                                            }
+
+                                            ?>
+
+                                        </td>
+
+                                    </tr>
+
+                                </table>
+
+
+                                <br>
+
+
+                                <!-- ACTION BUTTON -->
+
+                                <?php
+
+                                if (empty($currentStatus)) {
+
+                                ?>
+
+                                    <div class="text-center">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            data-toggle="modal"
+                                            data-target="#myModal"
+                                        >
+
+                                            Take Action
+
+                                        </button>
+
+                                    </div>
+
+                                <?php
+
+                                } else {
+
+                                ?>
+
+                                    <div class="text-center">
+
+                                        <a
+                                            href="all-appointment.php"
+                                            class="btn btn-default"
+                                        >
+
+                                            Back to Appointments
+
+                                        </a>
+
+                                    </div>
+
+                                <?php
+
+                                } ?>
+
+
+                            </div>
+
                         </div>
+
                     </div>
 
-						</div>
+                </div>
 
-					</div><!-- .widget-body -->
-					
-   
-				</div><!-- .widget -->
-			</div><!-- END column -->
-			
-			
-		</div><!-- .row -->
-	</section><!-- .app-content -->
-</div><!-- .wrap -->
-  <!-- APP FOOTER -->
-  <?php include_once('includes/footer.php');?>
-  <!-- /#app-footer -->
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- FOOTER -->
+
+    <?php include_once('includes/footer.php'); ?>
+
+
 </main>
-<!--========== END app main -->
-
-	<!-- APP CUSTOMIZER -->
 
 
-	
-		<!-- build:js assets/js/core.min.js -->
-	<script src="libs/bower/jquery/dist/jquery.js"></script>
-	<script src="libs/bower/jquery-ui/jquery-ui.min.js"></script>
-	<script src="libs/bower/jQuery-Storage-API/jquery.storageapi.min.js"></script>
-	<script src="libs/bower/bootstrap-sass/assets/javascripts/bootstrap.js"></script>
-	<script src="libs/bower/jquery-slimscroll/jquery.slimscroll.js"></script>
-	<script src="libs/bower/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
-	<script src="libs/bower/PACE/pace.min.js"></script>
-	<!-- endbuild -->
+<!-- ==============================
+     TAKE ACTION MODAL
+============================== -->
 
-	<!-- build:js assets/js/app.min.js -->
-	<script src="assets/js/library.js"></script>
-	<script src="assets/js/plugins.js"></script>
-	<script src="assets/js/app.js"></script>
-	<!-- endbuild -->
-	<script src="libs/bower/moment/moment.js"></script>
-	<script src="libs/bower/fullcalendar/dist/fullcalendar.min.js"></script>
-	<script src="assets/js/fullcalendar.js"></script>
+<?php
+
+if (empty($currentStatus)) {
+
+?>
+
+<div
+    class="modal fade"
+    id="myModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="exampleModalLabel"
+    aria-hidden="true"
+>
+
+    <div
+        class="modal-dialog"
+        role="document"
+    >
+
+        <div class="modal-content">
+
+
+            <!-- MODAL HEADER -->
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title"
+                    id="exampleModalLabel"
+                >
+                    Take Action
+                </h5>
+
+
+                <button
+                    type="button"
+                    class="close"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                >
+
+                    <span aria-hidden="true">
+                        &times;
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <!-- FORM -->
+
+            <form
+                method="post"
+                action=""
+            >
+
+
+                <!-- MODAL BODY -->
+
+                <div class="modal-body">
+
+
+                    <!-- REMARK -->
+
+                    <div class="form-group">
+
+                        <label>
+                            Remark
+                        </label>
+
+                        <textarea
+                            name="remark"
+                            placeholder="Enter remark"
+                            rows="6"
+                            class="form-control"
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="form-group">
+
+                        <label>
+                            Status
+                        </label>
+
+                        <select
+                            name="status"
+                            class="form-control"
+                            required
+                        >
+
+                            <option
+                                value="Approved"
+                                selected
+                            >
+                                Approved
+                            </option>
+
+                            <option value="Cancelled">
+                                Cancelled
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- MODAL FOOTER -->
+
+                <div class="modal-footer">
+
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-dismiss="modal"
+                    >
+                        Close
+                    </button>
+
+
+                    <button
+                        type="submit"
+                        name="submit"
+                        class="btn btn-primary"
+                    >
+                        Update
+                    </button>
+
+
+                </div>
+
+
+            </form>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+<?php
+
+}
+
+?>
+
+
+<!-- ==============================
+     JAVASCRIPT
+============================== -->
+
+<script src="libs/bower/jquery/dist/jquery.js"></script>
+
+<script src="libs/bower/jquery-ui/jquery-ui.min.js"></script>
+
+<script src="libs/bower/jQuery-Storage-API/jquery.storageapi.min.js"></script>
+
+<script src="libs/bower/bootstrap-sass/assets/javascripts/bootstrap.js"></script>
+
+<script src="libs/bower/jquery-slimscroll/jquery.slimscroll.js"></script>
+
+<script src="libs/bower/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
+
+<script src="libs/bower/PACE/pace.min.js"></script>
+
+
+<script src="assets/js/library.js"></script>
+
+<script src="assets/js/plugins.js"></script>
+
+<script src="assets/js/app.js"></script>
+
+
+<script src="libs/bower/moment/moment.js"></script>
+
+<script src="libs/bower/fullcalendar/dist/fullcalendar.min.js"></script>
+
+<script src="assets/js/fullcalendar.js"></script>
+
+
 </body>
+
 </html>
