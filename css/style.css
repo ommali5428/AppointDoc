@@ -432,7 +432,8 @@
 
   .blog .box-container .box{
     
-    width: 60rem;
+    width: 35rem;
+    height: 50rem;
 	
     margin: 2rem 1rem;
     overflow: hidden;
