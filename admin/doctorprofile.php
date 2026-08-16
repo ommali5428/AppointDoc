@@ -10,8 +10,14 @@ ini_set('display_errors', 1);
 |--------------------------------------------------------------------------
 | DATABASE CONNECTION
 |--------------------------------------------------------------------------
-| doctorprofile.php is inside /admin/
-| conn.php is one folder above /admin/
+| doctorprofile.php is inside:
+|
+| AppointDoc/admin/doctorprofile.php
+|
+| conn.php is inside:
+|
+| AppointDoc/conn.php
+|
 */
 
 require_once __DIR__ . '/../conn.php';
@@ -19,7 +25,7 @@ require_once __DIR__ . '/../conn.php';
 
 /*
 |--------------------------------------------------------------------------
-| CHECK LOGIN
+| LOGIN CHECK
 |--------------------------------------------------------------------------
 */
 
@@ -56,12 +62,12 @@ $sql = "
 ";
 
 $query = $dbh->prepare($sql);
-
 $query->execute();
 
 $doctors = $query->fetchAll(PDO::FETCH_OBJ);
 
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -69,9 +75,10 @@ $doctors = $query->fetchAll(PDO::FETCH_OBJ);
 
     <meta charset="UTF-8">
 
-    <title>Doctor Profile</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Doctor Profile</title>
 
 
     <!-- Font Awesome -->
@@ -80,10 +87,16 @@ $doctors = $query->fetchAll(PDO::FETCH_OBJ);
           href="libs/bower/font-awesome/css/font-awesome.min.css">
 
 
-    <!-- Material Design -->
+    <!-- Material Design Iconic Font -->
 
     <link rel="stylesheet"
           href="libs/bower/material-design-iconic-font/dist/css/material-design-iconic-font.css">
+
+
+    <!-- Animate -->
+
+    <link rel="stylesheet"
+          href="libs/bower/animate.css/animate.min.css">
 
 
     <!-- Bootstrap -->
@@ -102,12 +115,6 @@ $doctors = $query->fetchAll(PDO::FETCH_OBJ);
 
     <link rel="stylesheet"
           href="assets/css/app.css">
-
-
-    <!-- Animate -->
-
-    <link rel="stylesheet"
-          href="libs/bower/animate.css/animate.min.css">
 
 
     <!-- Google Font -->
@@ -129,6 +136,11 @@ $doctors = $query->fetchAll(PDO::FETCH_OBJ);
 
     <style>
 
+        .doctor-table {
+            width: 100%;
+        }
+
+
         .doctor-image {
 
             width: 80px;
@@ -140,6 +152,33 @@ $doctors = $query->fetchAll(PDO::FETCH_OBJ);
             border-radius: 50%;
 
             border: 2px solid #ddd;
+
+            display: block;
+
+        }
+
+
+        .no-image {
+
+            width: 80px;
+
+            height: 80px;
+
+            border-radius: 50%;
+
+            background: #eeeeee;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: #777;
+
+            font-size: 12px;
+
+            text-align: center;
 
         }
 
@@ -201,7 +240,7 @@ include_once __DIR__ . '/includes/sidebar.php';
 
 
 <!-- =========================================================
-     MAIN
+     MAIN CONTENT
 ========================================================= -->
 
 <main id="app-main" class="app-main">
@@ -217,14 +256,14 @@ include_once __DIR__ . '/includes/sidebar.php';
                     <div class="widget">
 
 
-                        <!-- HEADER -->
+                        <!-- =================================================
+                             TITLE
+                        ================================================== -->
 
                         <header class="widget-header">
 
                             <h3 class="widget-title">
-
                                 Doctor Profile
-
                             </h3>
 
                         </header>
@@ -233,14 +272,22 @@ include_once __DIR__ . '/includes/sidebar.php';
                         <hr class="widget-separator">
 
 
-                        <!-- BODY -->
+                        <!-- =================================================
+                             BODY
+                        ================================================== -->
 
                         <div class="widget-body">
 
                             <div class="table-responsive">
 
 
-                                <table class="table table-bordered table-striped">
+                                <table
+                                    class="table table-bordered table-striped doctor-table">
+
+
+                                    <!-- =================================================
+                                         TABLE HEADER
+                                    ================================================== -->
 
                                     <thead>
 
@@ -295,6 +342,10 @@ include_once __DIR__ . '/includes/sidebar.php';
                                     </thead>
 
 
+                                    <!-- =================================================
+                                         TABLE BODY
+                                    ================================================== -->
+
                                     <tbody>
 
 
@@ -318,44 +369,85 @@ include_once __DIR__ . '/includes/sidebar.php';
                                             <td>
 
                                                 <?php
+
                                                 echo $cnt;
+
                                                 ?>
 
                                             </td>
 
 
-                                            <!-- PHOTO -->
+                                            <!-- =================================================
+                                                 DOCTOR PHOTO
+                                            ================================================== -->
 
                                             <td>
 
                                                 <?php
 
-                                                $image = !empty($row->images)
-                                                    ? $row->images
-                                                    : '';
+                                                /*
+                                                ---------------------------------------------------
+                                                IMPORTANT:
 
-                                                $imagePath =
-                                                    "../images/" . $image;
+                                                signup.php uploads photos to:
+
+                                                AppointDoc/images/
+
+                                                doctorprofile.php is inside:
+
+                                                AppointDoc/admin/
+
+                                                Therefore:
+
+                                                ../images/
+
+                                                is correct.
+                                                ---------------------------------------------------
+                                                */
+
+
+                                                if (!empty($row->images)) {
+
+                                                    $doctorImage =
+                                                        "../images/" .
+                                                        $row->images;
 
                                                 ?>
 
-
-                                                <?php if (!empty($image)): ?>
-
                                                     <img
-                                                        src="<?php echo htmlspecialchars($imagePath); ?>"
+                                                        src="<?php echo htmlspecialchars($doctorImage); ?>"
                                                         class="doctor-image"
-                                                        alt="Doctor">
+                                                        alt="Doctor Photo"
+                                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                    >
 
+                                                    <div
+                                                        class="no-image"
+                                                        style="display:none;">
 
-                                                <?php else: ?>
+                                                        Image
+                                                        <br>
+                                                        Not Found
 
-                                                    <span>
-                                                        No Image
-                                                    </span>
+                                                    </div>
 
-                                                <?php endif; ?>
+                                                <?php
 
+                                                } else {
+
+                                                ?>
+
+                                                    <div class="no-image">
+
+                                                        No Photo
+
+                                                    </div>
+
+                                                <?php
+
+                                                }
+
+                                                ?>
 
                                             </td>
 
@@ -367,7 +459,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->FullName
+                                                    $row->FullName ?? ''
                                                 );
 
                                                 ?>
@@ -382,7 +474,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->MobileNumber
+                                                    $row->MobileNumber ?? ''
                                                 );
 
                                                 ?>
@@ -397,7 +489,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->Email
+                                                    $row->Email ?? ''
                                                 );
 
                                                 ?>
@@ -411,10 +503,17 @@ include_once __DIR__ . '/includes/sidebar.php';
 
                                                 <?php
 
-                                                echo htmlspecialchars(
-                                                    $row->SpecializationName
-                                                    ?? 'Not Available'
-                                                );
+                                                if (!empty($row->SpecializationName)) {
+
+                                                    echo htmlspecialchars(
+                                                        $row->SpecializationName
+                                                    );
+
+                                                } else {
+
+                                                    echo "Not Available";
+
+                                                }
 
                                                 ?>
 
@@ -428,8 +527,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->qualification
-                                                    ?? ''
+                                                    $row->qualification ?? ''
                                                 );
 
                                                 ?>
@@ -444,8 +542,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->experience
-                                                    ?? ''
+                                                    $row->experience ?? ''
                                                 );
 
                                                 ?>
@@ -460,8 +557,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->hospital_detail
-                                                    ?? ''
+                                                    $row->hospital_detail ?? ''
                                                 );
 
                                                 ?>
@@ -476,8 +572,7 @@ include_once __DIR__ . '/includes/sidebar.php';
                                                 <?php
 
                                                 echo htmlspecialchars(
-                                                    $row->timing
-                                                    ?? ''
+                                                    $row->timing ?? ''
                                                 );
 
                                                 ?>
@@ -490,6 +585,8 @@ include_once __DIR__ . '/includes/sidebar.php';
                                             <td>
 
 
+                                                <!-- EDIT -->
+
                                                 <a
                                                     href="updatedr.php?upid=<?php echo (int)$row->ID; ?>"
                                                     class="btn btn-primary action-btn">
@@ -500,6 +597,8 @@ include_once __DIR__ . '/includes/sidebar.php';
 
                                                 </a>
 
+
+                                                <!-- CHANGE PHOTO -->
 
                                                 <a
                                                     href="changephoto.php?pid=<?php echo (int)$row->ID; ?>"
@@ -530,6 +629,8 @@ include_once __DIR__ . '/includes/sidebar.php';
                                     ?>
 
 
+                                        <!-- NO DOCTORS -->
+
                                         <tr>
 
                                             <td
@@ -552,13 +653,13 @@ include_once __DIR__ . '/includes/sidebar.php';
 
                                     </tbody>
 
+
                                 </table>
 
 
                             </div>
 
                         </div>
-
 
                     </div>
 
@@ -571,7 +672,9 @@ include_once __DIR__ . '/includes/sidebar.php';
     </div>
 
 
-    <!-- FOOTER -->
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
 
     <?php
 
