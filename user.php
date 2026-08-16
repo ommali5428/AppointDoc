@@ -1,187 +1,200 @@
 <?php
+session_start();
+error_reporting(0);
 
-require_once __DIR__ . '/header.php';
+//include('C:\xampp\htdocs\img\AppointDoc\conn.php');
+include('header.php');
 
 
-// ==========================================
-// LOGIN CHECK
-// ==========================================
+    if (strlen($_SESSION['uid']==0)) {
+  header('location:logout.php');
+  } else{
+    if(isset($_POST['update']))
+  {
+    $did=$_SESSION['uid'];
+    $name=$_POST['name'];
+ 
+  $email=$_POST['email'];
+  $_SESSION['user_name']=$name;
+  
+  $sql="update user_form set name=:name,email=:email  where id=:did";
+     $query = $dbh->prepare($sql);
+     $query->bindParam(':name',$name,PDO::PARAM_STR);
+     $query->bindParam(':email',$email,PDO::PARAM_STR);
+     
+     $query->bindParam(':did',$did,PDO::PARAM_STR);
+$query->execute();
 
-if (
-    !isset($_SESSION['uid']) ||
-    (int)$_SESSION['uid'] <= 0
-) {
+        echo '<script>alert("Profile has been updated")</script>';
+     
 
-    header('Location: /login/logout.php');
-    exit;
+  }
+  
+ 
 
+
+
+
+
+
+
+  ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <title> Doctor Profile</title>
+  
+  
+ <link rel="stylesheet" href="/./img/AppointDoc/css/user.css"> 
+  <!-- build:css assets/css/app.min.css -->
+ 
+  
+  <script>
+    Breakpoints();
+  </script>
+</head>
+  
+<body style="background-color: white;" >
+<!--============= start main area -->
+
+            <form  class="form-horizontal" method="post" style="margin-left: 15%;">
+
+
+<!-- APP MAIN ==========-->
+<main align="">
+  <div class="wrap">	
+  <section class="app-content">
+    <div class="row" style="margin-top: 120px; ">	
+     
+      
+            <?php
+			
+	if(isset($_SESSION['uid']))
+	{		
+$did=$_SESSION['uid'];
+$query="select * from user_form where id=$did";
+$result=mysqli_query($conn,$query);
+			
+			
+			while($row = mysqli_fetch_array($result))
+				
+				{
+
+               ?>
+			   <h1 align="center" style="padding-bottom: 10px; margin-right: 300px "> User Information</h1>
+			   <hr></hr>
+			   
+              <div class="form-group" >
+                <label for="exampleTextInput1" class="col-sm-3 control-label" > Name:</label>
+                <div class="col-sm-9">
+                  <input id="name" type="text" class="form-control" placeholder="" name="name" required="true" value="<?php  echo $row[1];?>" style="width: 50%;">
+                </div>
+              </div>
+                          
+              <div class="form-group"> 
+                <label for="email2" class="col-sm-3 control-label"  >Email:</label>
+                <div class="col-sm-9">
+                  <input type="email" class="form-control" id="email" name="email" value="<?php  echo $row[2];?>" required='true' style="width: 50%;">
+                </div>
+              </div>
+			  
+			  
+			  <?php 
+		  } 
+		  
+	}
+	?>
+	<?php  
+	
+	if(isset($_SESSION['em']))
+	{		
+$appid=$_SESSION['em'];
+$query="select * from tblappointment where Email='$appid' ";
+$result=mysqli_query($conn,$query);
+			
+			
+			while($row = mysqli_fetch_array($result))
+				
+				{
+	
+					
+	?>
+              
+			   <div class="form-group">
+                <label for="email2" class="col-sm-3 control-label"  >Appointment Number:</label>
+                <div class="col-sm-9">
+				
+				
+                  <label class="form-control" type="text" style="width: 50%;" ><?php echo $row[1];?></label>
+				
+				  
+                </div>
+              </div>
+			  
+			 
+				<?php }
+				
+	}
+	
+	?>	
+	 
+			
+		  <div class="row" >
+                <div class="col-sm-9 col-sm-offset-3">
+                  <input type="submit" class="button" name="update" value="Update" style="width: 100px; height: 30px;">
+                </div>
+              </div>
+             
+            
+              
+            
+         
+
+    </div><!-- .row -->
+  </section><!-- #dash-content -->
+</div><!-- .wrap -->
+   
+
+</main>
+
+  
+  
+ </form>
+ 
+</body>
+</html>
+  <?php } ?><?php
+session_start();
+error_reporting(0);
+
+include('header.php');
+
+if (!isset($_SESSION['uid']) || empty($_SESSION['uid'])) {
+    header('Location: ../login/login_form.php');
+    exit();
 }
-
-
-$userId = (int)$_SESSION['uid'];
-
-
-// ==========================================
-// UPDATE PROFILE
-// ==========================================
 
 if (isset($_POST['update'])) {
 
+    $did = (int)$_SESSION['uid'];
 
-    $name =
-        trim($_POST['name'] ?? '');
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
 
-    $email =
-        trim($_POST['email'] ?? '');
+    $_SESSION['user_name'] = $name;
+    $_SESSION['em'] = $email;
 
+    $sql = "UPDATE user_form 
+            SET name='$name', email='$email' 
+            WHERE id=$did";
 
-    if ($name === '' || $email === '') {
-
-        echo "<script>
-                alert(
-                    'Name and email are required.'
-                );
-              </script>";
-
-    } elseif (
-        !filter_var(
-            $email,
-            FILTER_VALIDATE_EMAIL
-        )
-    ) {
-
-        echo "<script>
-                alert(
-                    'Please enter a valid email address.'
-                );
-              </script>";
-
+    if (mysqli_query($conn, $sql)) {
+        echo '<script>alert("Profile has been updated")</script>';
     } else {
-
-
-        try {
-
-
-            $stmt = $dbh->prepare(
-                "UPDATE user_form
-                 SET name = :name,
-                     email = :email
-                 WHERE id = :id"
-            );
-
-
-            $stmt->bindParam(
-                ':name',
-                $name,
-                PDO::PARAM_STR
-            );
-
-            $stmt->bindParam(
-                ':email',
-                $email,
-                PDO::PARAM_STR
-            );
-
-            $stmt->bindParam(
-                ':id',
-                $userId,
-                PDO::PARAM_INT
-            );
-
-
-            $stmt->execute();
-
-
-            $_SESSION['user_name'] =
-                $name;
-
-            $_SESSION['email'] =
-                $email;
-
-
-            echo "<script>
-                    alert(
-                        'Profile has been updated.'
-                    );
-                  </script>";
-
-
-        } catch (PDOException $e) {
-
-            echo "<script>
-                    alert(
-                        'Something went wrong. Please try again.'
-                    );
-                  </script>";
-
-        }
-
+        echo '<script>alert("Something went wrong. Please try again.")</script>';
     }
-
 }
-
-
-// ==========================================
-// GET USER
-// ==========================================
-
-$user = null;
-
-
-try {
-
-
-    $stmt = $dbh->prepare(
-        "SELECT id, name, email
-         FROM user_form
-         WHERE id = :id
-         LIMIT 1"
-    );
-
-
-    $stmt->bindParam(
-        ':id',
-        $userId,
-        PDO::PARAM_INT
-    );
-
-    $stmt->execute();
-
-
-    $user =
-        $stmt->fetch(PDO::FETCH_ASSOC);
-
-
-} catch (PDOException $e) {
-
-    $user = null;
-
-}
-
-
-if (!$user) {
-
-    echo '<h2 style="text-align:center;">
-            User not found.
-          </h2>';
-
-    exit;
-
-}
-
-
-$userName = htmlspecialchars(
-    $user['name'] ?? '',
-    ENT_QUOTES,
-    'UTF-8'
-);
-
-$userEmail = htmlspecialchars(
-    $user['email'] ?? '',
-    ENT_QUOTES,
-    'UTF-8'
-);
-
 ?>
 
 <!DOCTYPE html>
@@ -189,34 +202,23 @@ $userEmail = htmlspecialchars(
 
 <head>
 
-    <meta charset="UTF-8">
+    <title>Doctor Profile</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <link rel="stylesheet" href="../css/user.css">
 
-    <title>
-        User Profile - Appoint Doc
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="/css/user.css"
-    >
+    <script>
+        if (typeof Breakpoints !== "undefined") {
+            Breakpoints();
+        }
+    </script>
 
 </head>
 
-<body
-    style="background-color:white;"
->
+<body style="background-color: white;">
 
+<form class="form-horizontal" method="post" style="margin-left: 15%;">
 
-<form
-    class="form-horizontal"
-    method="post"
->
-
+<!-- APP MAIN ========== -->
 
 <main>
 
@@ -224,272 +226,147 @@ $userEmail = htmlspecialchars(
 
         <section class="app-content">
 
-            <div
-                class="row"
-                style="margin-top:120px;"
-            >
+            <div class="row" style="margin-top: 120px;">
+
+                <?php
+
+                $did = (int)$_SESSION['uid'];
+
+                $query = "SELECT * FROM user_form WHERE id=$did";
+                $result = mysqli_query($conn, $query);
+
+                if ($result && mysqli_num_rows($result) > 0) {
+
+                    $user = mysqli_fetch_assoc($result);
+
+                ?>
+
+                    <h1 align="center"
+                        style="padding-bottom: 10px; margin-right: 300px;">
+                        User Information
+                    </h1>
+
+                    <hr>
+
+                    <div class="form-group">
+
+                        <label for="name"
+                               class="col-sm-3 control-label">
+                            Name:
+                        </label>
+
+                        <div class="col-sm-9">
+
+                            <input
+                                id="name"
+                                type="text"
+                                class="form-control"
+                                placeholder=""
+                                name="name"
+                                required
+                                value="<?php echo htmlspecialchars($user['name']); ?>"
+                                style="width: 50%;">
+
+                        </div>
+
+                    </div>
 
 
-                <h1
-                    align="center"
-                    style="padding-bottom:10px;"
-                >
-                    User Information
-                </h1>
+                    <div class="form-group">
 
+                        <label for="email"
+                               class="col-sm-3 control-label">
+                            Email:
+                        </label>
 
-                <hr>
+                        <div class="col-sm-9">
 
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                value="<?php echo htmlspecialchars($user['email']); ?>"
+                                required
+                                style="width: 50%;">
 
-                <!-- NAME -->
+                        </div>
 
-                <div class="form-group">
+                    </div>
 
-                    <label>
-                        Name:
-                    </label>
-
-                    <input
-                        id="name"
-                        type="text"
-                        name="name"
-                        required
-                        value="<?php
-                            echo $userName;
-                        ?>"
-                        style="width:50%;"
-                    >
-
-                </div>
-
-
-                <!-- EMAIL -->
-
-                <div class="form-group">
-
-                    <label>
-                        Email:
-                    </label>
-
-                    <input
-                        type="email"
-                        name="email"
-                        required
-                        value="<?php
-                            echo $userEmail;
-                        ?>"
-                        style="width:50%;"
-                    >
-
-                </div>
-
-
-                <!-- APPOINTMENTS -->
-
-                <h2
-                    style="
-                        margin-top:40px;
-                        margin-bottom:20px;
-                    "
-                >
-                    My Appointments
-                </h2>
+                <?php
+                }
+                ?>
 
 
                 <?php
 
-                try {
+                $email = mysqli_real_escape_string(
+                    $conn,
+                    $_SESSION['em'] ?? ''
+                );
 
+                if (!empty($email)) {
 
-                    $appointmentStmt =
-                        $dbh->prepare(
-                            "SELECT
-                                AppointmentNumber,
-                                AppointmentDate,
-                                AppointmentTime,
-                                Specialization,
-                                Doctor,
-                                Status,
-                                Remark
-                             FROM tblappointment
-                             WHERE Email = :email
-                             ORDER BY ID DESC"
-                        );
+                    $query = "SELECT * FROM tblappointment 
+                              WHERE Email='$email'
+                              ORDER BY ID DESC";
 
+                    $result = mysqli_query($conn, $query);
 
-                    $appointmentStmt->bindParam(
-                        ':email',
-                        $user['email'],
-                        PDO::PARAM_STR
-                    );
+                    if ($result && mysqli_num_rows($result) > 0) {
 
+                        while ($appointment = mysqli_fetch_assoc($result)) {
 
-                    $appointmentStmt->execute();
+                ?>
 
+                    <div class="form-group">
 
-                    $appointments =
-                        $appointmentStmt
-                        ->fetchAll(
-                            PDO::FETCH_ASSOC
-                        );
+                        <label class="col-sm-3 control-label">
+                            Appointment Number:
+                        </label>
 
+                        <div class="col-sm-9">
 
-                    if (
-                        count($appointments) > 0
-                    ) {
-
-
-                        foreach (
-                            $appointments
-                            as $appointment
-                        ) {
-
-                            ?>
-
-
-                            <div
-                                style="
-                                    padding:15px;
-                                    margin-bottom:15px;
-                                    border:1px solid #ddd;
-                                    border-radius:8px;
-                                "
-                            >
-
-                                <strong>
-                                    Appointment Number:
-                                </strong>
+                            <label
+                                class="form-control"
+                                style="width: 50%;">
 
                                 <?php
                                 echo htmlspecialchars(
-                                    $appointment[
-                                        'AppointmentNumber'
-                                    ] ?? '',
-                                    ENT_QUOTES,
-                                    'UTF-8'
+                                    $appointment['AppointmentNumber']
                                 );
                                 ?>
 
-                                <br>
+                            </label>
 
+                        </div>
 
-                                <strong>
-                                    Date:
-                                </strong>
+                    </div>
 
-                                <?php
-                                echo htmlspecialchars(
-                                    $appointment[
-                                        'AppointmentDate'
-                                    ] ?? '',
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                );
-                                ?>
-
-                                <br>
-
-
-                                <strong>
-                                    Time:
-                                </strong>
-
-                                <?php
-                                echo htmlspecialchars(
-                                    $appointment[
-                                        'AppointmentTime'
-                                    ] ?? '',
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                );
-                                ?>
-
-                                <br>
-
-
-                                <strong>
-                                    Status:
-                                </strong>
-
-                                <?php
-                                echo htmlspecialchars(
-                                    $appointment[
-                                        'Status'
-                                    ] ?? '',
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                );
-                                ?>
-
-                                <br>
-
-
-                                <strong>
-                                    Remark:
-                                </strong>
-
-                                <?php
-                                echo htmlspecialchars(
-                                    $appointment[
-                                        'Remark'
-                                    ] ?? '',
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ); ?>
-
-                            </div>
-
-
-                            <?php
+                <?php
 
                         }
 
-
-                    } else {
-
-                        ?>
-
-                        <p>
-                            No appointments found.
-                        </p>
-
-                        <?php
-
                     }
-
-
-                } catch (PDOException $e) {
-
-                    ?>
-
-                    <p>
-                        Unable to load appointments.
-                    </p>
-
-                    <?php
 
                 }
 
                 ?>
 
 
-                <!-- UPDATE -->
+                <div class="row">
 
-                <div
-                    class="row"
-                    style="margin-top:30px;"
-                >
+                    <div class="col-sm-9 col-sm-offset-3">
 
-                    <input
-                        type="submit"
-                        class="button"
-                        name="update"
-                        value="Update"
-                        style="
-                            width:100px;
-                            height:30px;
-                        "
-                    >
+                        <input
+                            type="submit"
+                            class="button"
+                            name="update"
+                            value="Update"
+                            style="width: 100px; height: 30px;">
+
+                    </div>
 
                 </div>
 
@@ -502,9 +379,7 @@ $userEmail = htmlspecialchars(
 
 </main>
 
-
 </form>
-
 
 </body>
 
