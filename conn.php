@@ -1,30 +1,64 @@
 <?php
 
-$host = "YOUR_DATABASE_HOST";
-$dbname = "YOUR_DATABASE_NAME";
-$username = "YOUR_DATABASE_USERNAME";
-$password = "YOUR_DATABASE_PASSWORD";
+$host = getenv('DB_HOST');
+$port = getenv('DB_PORT') ?: '3306';
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+$db   = getenv('DB_NAME');
+
+
+/*
+|--------------------------------------------------------------------------
+| Check environment variables
+|--------------------------------------------------------------------------
+*/
+
+if (!$host || !$user || !$db) {
+    die("Database environment variables are missing.");
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| MySQLi connection
+|--------------------------------------------------------------------------
+*/
+
+$conn = mysqli_connect(
+    $host,
+    $user,
+    $pass,
+    $db,
+    (int)$port
+);
+
+if (!$conn) {
+    die("MySQLi connection failed: " . mysqli_connect_error());
+}
+
+mysqli_set_charset($conn, "utf8mb4");
+
+
+/*
+|--------------------------------------------------------------------------
+| PDO connection
+|--------------------------------------------------------------------------
+*/
 
 try {
-    // PDO connection
+
     $dbh = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $username,
-        $password
+        "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4",
+        $user,
+        $pass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
     );
 
-    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // MySQLi connection
-    $conn = new mysqli($host, $username, $password, $dbname);
-
-    if ($conn->connect_error) {
-        die("MySQLi Connection failed: " . $conn->connect_error);
-    }
-
-    $conn->set_charset("utf8mb4");
-
 } catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+
+    die("PDO connection failed: " . $e->getMessage());
+
 }
-?>
