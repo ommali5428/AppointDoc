@@ -210,7 +210,7 @@ if (!isset($_SESSION['admin']) || empty($_SESSION['admin'])) {
                                             if (!empty($imageName)) {
 
                                                 $imagePath =
-                                                    "../drimages/" .
+                                                    "../images/" .
                                                     rawurlencode($imageName);
 
                                             ?>
@@ -225,7 +225,7 @@ if (!isset($_SESSION['admin']) || empty($_SESSION['admin'])) {
                                                         border-radius:8px;
                                                         border:2px solid #ddd;
                                                     "
-                                                    onerror="this.onerror=null;this.src='../drimages/default-doctor.png';"
+                                                    onerror="this.onerror=null;this.src='../images/default-doctor.png';"
                                                 >
 
                                             <?php
@@ -235,7 +235,7 @@ if (!isset($_SESSION['admin']) || empty($_SESSION['admin'])) {
                                             ?>
 
                                                 <img
-                                                    src="../drimages/default-doctor.png"
+                                                    src="../images/default-doctor.png"
                                                     alt="No Image"
                                                     style="
                                                         width:100px;
