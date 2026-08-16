@@ -1,934 +1,183 @@
 <?php
 
-// ==========================================================
-// AppointDoc - Check Appointment
-// ==========================================================
+//error_reporting(0);
 
-// header.php is one directory above this file.
-// It also loads conn.php and starts the session.
-require_once dirname(__DIR__) . '/header.php';
-
-
-// ==========================================================
-// DEFAULT VALUES
-// ==========================================================
-
-$appointment = null;
-$searchPerformed = false;
-$errorMessage = '';
-
-
-// ==========================================================
-// CHECK APPOINTMENT
-// ==========================================================
-
-if (isset($_POST['check'])) {
-
-    $searchPerformed = true;
-
-    $appointmentNumber = trim(
-        $_POST['appointmentnumber'] ?? ''
-    );
-
-    $email = trim(
-        $_POST['email'] ?? ''
-    );
-
-
-    // ======================================================
-    // VALIDATION
-    // ======================================================
-
-    if ($appointmentNumber === '' || $email === '') {
-
-        $errorMessage =
-            'Please enter Appointment Number and Email.';
-
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-
-        $errorMessage =
-            'Please enter a valid email address.';
-
-    } else {
-
-        try {
-
-            // ==================================================
-            // FIND APPOINTMENT
-            // ==================================================
-
-            $sql = "
-                SELECT
-                    ID,
-                    AppointmentNumber,
-                    Name,
-                    MobileNumber,
-                    Email,
-                    AppointmentDate,
-                    AppointmentTime,
-                    Specialization,
-                    Doctor,
-                    Message,
-                    ApplyDate,
-                    Remark,
-                    Status,
-                    UpdatonDate
-                FROM tblappointment
-                WHERE AppointmentNumber = :appointmentnumber
-                AND Email = :email
-                LIMIT 1
-            ";
-
-            $query = $dbh->prepare($sql);
-
-            $query->bindValue(
-                ':appointmentnumber',
-                $appointmentNumber,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':email',
-                $email,
-                PDO::PARAM_STR
-            );
-
-            $query->execute();
-
-            $appointment =
-                $query->fetch(PDO::FETCH_ASSOC);
-
-
-            // ==================================================
-            // NOT FOUND
-            // ==================================================
-
-            if (!$appointment) {
-
-                $errorMessage =
-                    'No appointment found. Please check your Appointment Number and Email.';
-
-            }
-
-        } catch (PDOException $e) {
-
-            $errorMessage =
-                'Unable to check appointment. Please try again later.';
-
-        }
-
-    }
-
-}
-
-
-// ==========================================================
-// GET DOCTOR NAME
-// ==========================================================
-
-$doctorName = '';
-
-if ($appointment) {
-
-    try {
-
-        $doctorId =
-            (int) ($appointment['Doctor'] ?? 0);
-
-        if ($doctorId > 0) {
-
-            $doctorQuery = $dbh->prepare(
-                "SELECT FullName
-                 FROM tbldoctor
-                 WHERE ID = :doctor
-                 LIMIT 1"
-            );
-
-            $doctorQuery->bindValue(
-                ':doctor',
-                $doctorId,
-                PDO::PARAM_INT
-            );
-
-            $doctorQuery->execute();
-
-            $doctor = $doctorQuery->fetch(
-                PDO::FETCH_ASSOC
-            );
-
-            if ($doctor) {
-
-                $doctorName =
-                    $doctor['FullName'] ?? '';
-
-            }
-
-        }
-
-    } catch (PDOException $e) {
-
-        $doctorName = '';
-
-    }
-
-}
-
-
-// ==========================================================
-// GET SPECIALIZATION NAME
-// ==========================================================
-
-$specializationName = '';
-
-if ($appointment) {
-
-    try {
-
-        $specializationId =
-            (int) ($appointment['Specialization'] ?? 0);
-
-        if ($specializationId > 0) {
-
-            $specializationQuery =
-                $dbh->prepare(
-                    "SELECT Specialization
-                     FROM tblspecialization
-                     WHERE ID = :id
-                     LIMIT 1"
-                );
-
-            $specializationQuery->bindValue(
-                ':id',
-                $specializationId,
-                PDO::PARAM_INT
-            );
-
-            $specializationQuery->execute();
-
-            $specialization =
-                $specializationQuery->fetch(
-                    PDO::FETCH_ASSOC
-                );
-
-            if ($specialization) {
-
-                $specializationName =
-                    $specialization['Specialization'] ?? '';
-
-            }
-
-        }
-
-    } catch (PDOException $e) {
-
-        $specializationName = '';
-
-    }
-
-}
+//include('C:\xampp\htdocs\img\AppointDoc\conn.php');
+include('C:\xampp\htdocs\img\AppointDoc\header.php');
 
 ?>
-
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Check Appointment</title>
-
-
-    <!-- ==================================================
-         FONT AWESOME
-    =================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-
-
-    <style>
-
-        .appointment-check-container {
-            width: 90%;
-            max-width: 1100px;
-            margin: 120px auto 60px;
-        }
-
-
-        .appointment-check-box {
-            background: #ffffff;
-            padding: 35px;
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.12);
-        }
-
-
-        .appointment-check-box h1 {
-            text-align: center;
-            color: #0188df;
-            margin-bottom: 10px;
-        }
-
-
-        .appointment-check-box .title {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-
-        .check-form {
-            max-width: 700px;
-            margin: auto;
-        }
-
-
-        .check-form input {
-            width: 100%;
-            padding: 13px 15px;
-            margin-bottom: 18px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #EDF4FF;
-            font-size: 15px;
-            box-sizing: border-box;
-        }
-
-
-        .check-form button {
-            display: block;
-            margin: 10px auto 0;
-            padding: 12px 35px;
-            border: none;
-            cursor: pointer;
-        }
-
-
-        .error-message {
-            max-width: 700px;
-            margin: 25px auto;
-            padding: 15px;
-            background: #ffe8e8;
-            color: #c00000;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-
-        .success-message {
-            max-width: 700px;
-            margin: 25px auto;
-            padding: 15px;
-            background: #e8f8ed;
-            color: #08752b;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-
-        .appointment-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-        }
-
-
-        .appointment-table th,
-        .appointment-table td {
-            border: 1px solid #ddd;
-            padding: 13px;
-            text-align: left;
-        }
-
-
-        .appointment-table th {
-            width: 35%;
-            background: #f2f8ff;
-            color: #003265;
-        }
-
-
-        .status-approved {
-            color: green;
-            font-weight: bold;
-        }
-
-
-        .status-rejected {
-            color: red;
-            font-weight: bold;
-        }
-
-
-        .status-pending {
-            color: #d88900;
-            font-weight: bold;
-        }
-
-
-        @media (max-width: 768px) {
-
-            .appointment-check-container {
-                width: 95%;
-                margin-top: 100px;
-            }
-
-
-            .appointment-check-box {
-                padding: 20px;
-            }
-
-
-            .appointment-table th,
-            .appointment-table td {
-                padding: 9px;
-                font-size: 14px;
-            }
-
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-
-<!-- ======================================================
-     CHECK APPOINTMENT
-======================================================= -->
-
-<section class="appointment-check-container">
-
-    <div class="appointment-check-box">
-
-
-        <h1>
-            Check Appointment
-        </h1>
-
-
-        <h3 class="title">
-            Check your appointment status
-        </h3>
-
-
-        <!-- ==================================================
-             SEARCH FORM
-        =================================================== -->
-
-        <form
-            method="post"
-            class="check-form"
-        >
-
-
-            <input
-                type="text"
-                name="appointmentnumber"
-                placeholder="Enter Appointment Number"
-                value="<?php
-
-                    echo htmlspecialchars(
-                        $_POST['appointmentnumber'] ?? '',
-                        ENT_QUOTES,
-                        'UTF-8'
-                    );
-
-                ?>"
-                required
-            >
-
-
-            <input
-                type="email"
-                name="email"
-                placeholder="Enter Email Address"
-                value="<?php
-
-                    echo htmlspecialchars(
-                        $_POST['email'] ?? '',
-                        ENT_QUOTES,
-                        'UTF-8'
-                    );
-
-                ?>"
-                required
-            >
-
-
-            <button
-                type="submit"
-                name="check"
-                class="button"
-            >
-                Check Appointment
-            </button>
-
-
-        </form>
-
-
-        <!-- ==================================================
-             ERROR MESSAGE
-        =================================================== -->
-
-        <?php if ($errorMessage !== ''): ?>
-
-            <div class="error-message">
-
-                <i class="fas fa-circle-exclamation"></i>
-
-                &nbsp;
-
-                <?php
-
-                echo htmlspecialchars(
-                    $errorMessage,
-                    ENT_QUOTES,
-                    'UTF-8'
-                );
-
-                ?>
-
-            </div>
-
-        <?php endif; ?>
-
-
-        <!-- ==================================================
-             APPOINTMENT DETAILS
-        =================================================== -->
-
-        <?php if ($appointment): ?>
-
-
-            <div class="success-message">
-
-                <i class="fas fa-circle-check"></i>
-
-                &nbsp;
-
-                Appointment found successfully.
-
-            </div>
-
-
-            <table class="appointment-table">
-
-
-                <!-- APPOINTMENT NUMBER -->
-
-                <tr>
-
-                    <th>
-                        Appointment Number
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['AppointmentNumber'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- NAME -->
-
-                <tr>
-
-                    <th>
-                        Patient Name
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['Name'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- MOBILE -->
-
-                <tr>
-
-                    <th>
-                        Mobile Number
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['MobileNumber'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- EMAIL -->
-
-                <tr>
-
-                    <th>
-                        Email
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['Email'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- SPECIALIZATION -->
-
-                <tr>
-
-                    <th>
-                        Specialization
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $specializationName,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- DOCTOR -->
-
-                <tr>
-
-                    <th>
-                        Doctor
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $doctorName,
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- DATE -->
-
-                <tr>
-
-                    <th>
-                        Appointment Date
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['AppointmentDate'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- TIME -->
-
-                <tr>
-
-                    <th>
-                        Appointment Time
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['AppointmentTime'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- MESSAGE -->
-
-                <tr>
-
-                    <th>
-                        Message
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo nl2br(
-                            htmlspecialchars(
-                                $appointment['Message'] ?? '',
-                                ENT_QUOTES,
-                                'UTF-8'
-                            )
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- APPLY DATE -->
-
-                <tr>
-
-                    <th>
-                        Apply Date
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        echo htmlspecialchars(
-                            $appointment['ApplyDate'] ?? '',
-                            ENT_QUOTES,
-                            'UTF-8'
-                        );
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- STATUS -->
-
-                <tr>
-
-                    <th>
-                        Status
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        $status =
-                            trim(
-                                $appointment['Status'] ?? ''
-                            );
-
-                        $statusClass = '';
-
-                        if (
-                            strtolower($status)
-                            === 'approved'
-                        ) {
-
-                            $statusClass =
-                                'status-approved';
-
-                        } elseif (
-                            strtolower($status)
-                            === 'rejected'
-                        ) {
-
-                            $statusClass =
-                                'status-rejected';
-
-                        } else {
-
-                            $statusClass =
-                                'status-pending';
-
-                        }
-
-                        ?>
-
-                        <span
-                            class="<?php
-                                echo $statusClass;
-                            ?>"
-                        >
-
+    <head>
+        <title>Check Status </title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+        <link href="css_app/bootstrap.min1.css" rel="stylesheet">
+
+        <link href="css_app/bootstrap-icons.css" rel="stylesheet">
+
+        <link href="css_app/owl.carousel.min.css" rel="stylesheet">
+
+        <link href="css_app/owl.theme.default.min.css" rel="stylesheet">
+
+        <link href="css_app/templatemo-medic-care4.css" rel="stylesheet">
+		
+        <script>
+function getdoctors(val) {
+     alert(val);
+$.ajax({
+
+type: "POST",
+url: "get_doctors.php",
+data:'sp_id='+val,
+success: function(data){
+$("#doctorlist").html(data);
+}
+});
+}
+</script>
+    </head>
+    
+    <body id="top">
+    
+        <main>
+
+            
+          
+       
+            
+
+            
+
+            <section class="section-padding" id="booking">
+                <div class="container">
+                    <div class="row">
+                    
+                        <div class="col-lg-12 col-12 mx-auto">
+                            <div class="booking-form">
+                                
+                                <h3 class="text-center mb-lg-3 mb-2" style="color:#0188df">Search Appointment History by Appointment Number/Name/Mobile No</h3>
+                            
+                                <form role="form" method="post">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-12" style="margin-top:30px;">
+                                            <input id="searchdata" type="text" name="searchdata" required="true" class="form-control" style="font-size:15px;background-color:#EDF4FF; border-radius:8px;" placeholder="Appointment No./Name/Mobile No.">
+											<div style="margin-top: 20px;"><a href="cancel.php" ><span style="font-size: 15px; color: #800000;">* Want to Cancel your Appointment?</span></a></div>
+                                        </div>
+											
+                                        <div class="col-lg-3 col-md-4 col-6 mx-auto">
+                                            <button type="submit" class="button" style="width:250px; margin-top:50px;" name="search" >Check</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
                             <?php
+if(isset($_POST['search']))
+{ 
+	if (strlen($_SESSION['uid'] == NULL)) {
+  
+		 echo '<script>alert("Please Login To Check Status of Appointment")</script>';
+echo "<script>window.location.href ='../login/login_form.php'</script>";
+	  }
+	  else{
+$sdata=$_POST['searchdata'];
+  ?>
+  <h4 align="center" Style="margin-top: 50px; margin-bottom: 50px;">Result For "<?php echo $sdata;?>"  </h4>
+                    
+                    <div class="widget-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover js-basic-example dataTable table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>S.No</th>
+                                        <th>Appointment Number</th>
+                                        <th>Patient Name</th>
+                                        <th>Mobile Number</th>
+                                        <th>Email</th>
+										<th>Doctor</th>
+                                    <th>Status</th>
+                                        <th>Remark</th>
+										
+                                        
+                                    </tr>
+                                </thead>
+                            
+                                <tbody>
+                  <?php
+             
+$sql="SELECT * from tblappointment where AppointmentNumber like '$sdata%' || Name like '$sdata%' || MobileNumber like '$sdata%'";
+$query = $dbh -> prepare($sql);
+$query->execute();
+$results=$query->fetchAll(PDO::FETCH_OBJ);
 
-                            echo htmlspecialchars(
-                                $status !== ''
-                                    ? $status
-                                    : 'Pending',
-                                ENT_QUOTES,
-                                'UTF-8'
-                            );
+$cnt=1;
+if($query->rowCount() > 0)
+{
+foreach($results as $row)
+{               ?>
+                                    <tr>
+                                        <td><?php echo htmlentities($cnt);?></td>
+                                        <td><?php  echo htmlentities($row->AppointmentNumber);?></td>
+                                        <td><?php  echo htmlentities($row->Name);?></td>
+                                        <td><?php  echo htmlentities($row->MobileNumber);?></td>
+										
+                                        <td><?php  echo htmlentities($row->Email);?></td>
+										<td>
+										
+										<?php 
+											$drn = $row->Doctor ;
+											$query="select FullName from tbldoctor where ID = $drn";
+											$result =mysqli_query($conn,$query);
+			
+			while($row1 = mysqli_fetch_array($result))
+				{
+					echo $row1['FullName'];
+				}
+										?>
+										
+										
+										</td>
+										
+                                        <?php if($row->Status==""){ ?>
 
-                            ?>
+                     <td><?php echo "Not Updated Yet"; ?></td>
+<?php } else { ?>                  <td><?php  echo htmlentities($row->Status);?>
+                  </td>
+                  <?php } ?>             
+                 
+                                        <?php if($row->Remark==""){ ?>
 
-                        </span>
+                     <td><?php echo "Not Updated Yet"; ?></td>
+<?php } else { ?>                  <td><?php  echo htmlentities($row->Remark);?>
+                  </td>
+                  <?php } ?>
+                                        
+                                    </tr>
+                                
+    
+                                </tbody>
+             
+                <?php 
+$cnt=$cnt+1;
+} } else { ?>
+  <tr>
+    <td colspan="8"> No record found against this search</td>
 
-                    </td>
+  </tr>
+  <?php } } }?>
+                            </table>
+                        </div>
 
-                </tr>
-
-
-                <!-- REMARK -->
-
-                <tr>
-
-                    <th>
-                        Remark
-                    </th>
-
-                    <td>
-
-                        <?php
-
-                        $remark =
-                            trim(
-                                $appointment['Remark'] ?? ''
-                            );
-
-                        echo $remark !== ''
-                            ? nl2br(
-                                htmlspecialchars(
-                                    $remark,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                )
-                            )
-                            : 'No remark available';
-
-                        ?>
-
-                    </td>
-
-                </tr>
-
-
-                <!-- UPDATE DATE -->
-
-                <?php
-
-                if (
-                    !empty(
-                        $appointment['UpdatonDate']
-                    )
-                ):
-
-                ?>
-
-                    <tr>
-
-                        <th>
-                            Last Updated
-                        </th>
-
-                        <td>
-
-                            <?php
-
-                            echo htmlspecialchars(
-                                $appointment['UpdatonDate'],
-                                ENT_QUOTES,
-                                'UTF-8'
-                            );
-
-                            ?>
-
-                        </td>
-
-                    </tr>
-
-                <?php endif; ?>
-
-
-            </table>
-
-
-        <?php endif; ?>
-
-
-    </div>
-
-</section>
-
-
-</body>
-
+                    </div>
+                </div>
+            </section>
+             
+        </main>
+        
+    </body>
 </html>
