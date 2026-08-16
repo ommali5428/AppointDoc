@@ -1,70 +1,45 @@
 <?php
 
-// ==========================================================
-// APPOINTMENT BOOKING PAGE
-// AppointDoc
-// ==========================================================
+// ==========================================
+// HEADER
+// ==========================================
 
-// ----------------------------------------------------------
-// SESSION
-// ----------------------------------------------------------
+require_once __DIR__ . '/../header.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+
+// ==========================================
+// CHECK DATABASE CONNECTION
+// ==========================================
+
+if (!isset($conn) || !$conn) {
+    die('Database connection failed.');
 }
 
 
-// ----------------------------------------------------------
-// DATABASE + HEADER
-// ----------------------------------------------------------
-// appointment/bookappointment.php
-// __DIR__ = /var/www/html/appointment
-// dirname(__DIR__) = /var/www/html
-// ----------------------------------------------------------
-
-require_once dirname(__DIR__) . '/header.php';
-
-
-// ----------------------------------------------------------
-// MESSAGE VARIABLES
-// ----------------------------------------------------------
-
-$successMessage = '';
-$errorMessage   = '';
-
-
-// ----------------------------------------------------------
+// ==========================================
 // GET SPECIALIZATION ID
-// ----------------------------------------------------------
+// ==========================================
 
-$selectedSpecialization = 0;
-
-if (isset($_GET['id']) && $_GET['id'] !== '') {
-
-    $selectedSpecialization = filter_input(
-        INPUT_GET,
-        'id',
-        FILTER_VALIDATE_INT
-    );
-
-    if (!$selectedSpecialization) {
-        $selectedSpecialization = 0;
-    }
-}
+$specializationId = isset($_GET['id'])
+    ? (int)$_GET['id']
+    : 0;
 
 
-// ==========================================================
-// HANDLE APPOINTMENT SUBMISSION
-// ==========================================================
+// ==========================================
+// APPOINTMENT SUBMISSION
+// ==========================================
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+if (isset($_POST['submit'])) {
 
 
-    // ------------------------------------------------------
+    // ==========================================
     // CHECK LOGIN
-    // ------------------------------------------------------
+    // ==========================================
 
-    if (empty($_SESSION['uid'])) {
+    if (
+        !isset($_SESSION['uid']) ||
+        empty($_SESSION['uid'])
+    ) {
 
         echo '<script>
             alert("Please Login To Book Appointment");
@@ -75,249 +50,189 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     }
 
 
-    // ------------------------------------------------------
+    // ==========================================
     // GET FORM VALUES
-    // ------------------------------------------------------
+    // ==========================================
 
-    $name = trim($_POST['name'] ?? '');
-
-    $mobileNumber = trim($_POST['phone'] ?? '');
-
-    $email = trim($_POST['email'] ?? '');
-
-    $appointmentDate = trim($_POST['date'] ?? '');
-
-    $appointmentTime = trim($_POST['time'] ?? '');
-
-    $specialization = filter_input(
-        INPUT_POST,
-        'specialization',
-        FILTER_VALIDATE_INT
+    $name = trim(
+        $_POST['name'] ?? ''
     );
 
-    $doctor = filter_input(
-        INPUT_POST,
-        'doctorlist',
-        FILTER_VALIDATE_INT
+    $mobnum = trim(
+        $_POST['phone'] ?? ''
     );
 
-    $message = trim($_POST['message'] ?? '');
+    $email = trim(
+        $_POST['email'] ?? ''
+    );
+
+    $appdate = trim(
+        $_POST['date'] ?? ''
+    );
+
+    $aaptime = trim(
+        $_POST['time'] ?? ''
+    );
+
+    $specialization = isset(
+        $_POST['specialization']
+    )
+        ? (int)$_POST['specialization']
+        : 0;
+
+    $doctorlist = isset(
+        $_POST['doctorlist']
+    )
+        ? (int)$_POST['doctorlist']
+        : 0;
+
+    $message = trim(
+        $_POST['message'] ?? ''
+    );
 
 
-    // ------------------------------------------------------
+    // ==========================================
     // BASIC VALIDATION
-    // ------------------------------------------------------
+    // ==========================================
 
     if ($name === '') {
 
-        $errorMessage = 'Please enter your full name.';
+        echo '<script>
+            alert("Please enter your name.");
+        </script>';
 
-    } elseif ($mobileNumber === '') {
+    } elseif (
+        !filter_var(
+            $email,
+            FILTER_VALIDATE_EMAIL
+        )
+    ) {
 
-        $errorMessage = 'Please enter your mobile number.';
+        echo '<script>
+            alert("Please enter a valid email address.");
+        </script>';
 
-    } elseif (!preg_match('/^[0-9]{10}$/', $mobileNumber)) {
+    } elseif ($mobnum === '') {
 
-        $errorMessage = 'Please enter a valid 10-digit mobile number.';
+        echo '<script>
+            alert("Please enter your mobile number.");
+        </script>';
 
-    } elseif ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    } elseif (
+        !preg_match(
+            '/^[0-9]{10}$/',
+            $mobnum
+        )
+    ) {
 
-        $errorMessage = 'Please enter a valid email address.';
+        echo '<script>
+            alert("Please enter a valid 10 digit mobile number.");
+        </script>';
 
-    } elseif ($appointmentDate === '') {
+    } elseif ($appdate === '') {
 
-        $errorMessage = 'Please select an appointment date.';
+        echo '<script>
+            alert("Please select appointment date.");
+        </script>';
 
-    } elseif ($appointmentTime === '') {
+    } elseif ($aaptime === '') {
 
-        $errorMessage = 'Please select an appointment time.';
+        echo '<script>
+            alert("Please select appointment time.");
+        </script>';
 
-    } elseif (!$specialization) {
+    } elseif ($specialization <= 0) {
 
-        $errorMessage = 'Please select a specialization.';
+        echo '<script>
+            alert("Please select specialization.");
+        </script>';
 
-    } elseif (!$doctor) {
+    } elseif ($doctorlist <= 0) {
 
-        $errorMessage = 'Please select a doctor.';
+        echo '<script>
+            alert("Please select doctor.");
+        </script>';
 
-    }
+    } else {
 
 
-    // ------------------------------------------------------
-    // DATE VALIDATION
-    // ------------------------------------------------------
-
-    if ($errorMessage === '') {
+        // ==========================================
+        // CHECK APPOINTMENT DATE
+        // ==========================================
 
         $today = date('Y-m-d');
 
-        if ($appointmentDate <= $today) {
 
-            $errorMessage =
-                'Appointment date must be greater than today\'s date.';
+        if ($appdate <= $today) {
 
-        }
-    }
+            echo '<script>
+                alert("Appointment date must be greater than todays date");
+            </script>';
 
-
-    // ------------------------------------------------------
-    // VALIDATE SPECIALIZATION
-    // ------------------------------------------------------
-
-    if ($errorMessage === '') {
-
-        try {
-
-            $specializationCheck = $dbh->prepare(
-                "SELECT ID
-                 FROM tblspecialization
-                 WHERE ID = :id
-                 LIMIT 1"
-            );
-
-            $specializationCheck->bindValue(
-                ':id',
-                $specialization,
-                PDO::PARAM_INT
-            );
-
-            $specializationCheck->execute();
-
-            if (!$specializationCheck->fetch(PDO::FETCH_ASSOC)) {
-
-                $errorMessage = 'Invalid specialization selected.';
-
-            }
-
-        } catch (PDOException $e) {
-
-            error_log(
-                'Specialization validation error: ' .
-                $e->getMessage()
-            );
-
-            $errorMessage =
-                'Unable to validate specialization. Please try again.';
-        }
-    }
+        } else {
 
 
-    // ------------------------------------------------------
-    // VALIDATE DOCTOR
-    // ------------------------------------------------------
-
-    if ($errorMessage === '') {
-
-        try {
-
-            $doctorCheck = $dbh->prepare(
-                "SELECT ID
-                 FROM tbldoctor
-                 WHERE ID = :doctor
-                 AND Specialization = :specialization
-                 LIMIT 1"
-            );
-
-            $doctorCheck->bindValue(
-                ':doctor',
-                $doctor,
-                PDO::PARAM_INT
-            );
-
-            $doctorCheck->bindValue(
-                ':specialization',
-                $specialization,
-                PDO::PARAM_INT
-            );
-
-            $doctorCheck->execute();
-
-            if (!$doctorCheck->fetch(PDO::FETCH_ASSOC)) {
-
-                $errorMessage =
-                    'The selected doctor does not belong to the selected specialization.';
-            }
-
-        } catch (PDOException $e) {
-
-            error_log(
-                'Doctor validation error: ' .
-                $e->getMessage()
-            );
-
-            $errorMessage =
-                'Unable to validate doctor. Please try again.';
-        }
-    }
-
-
-    // ======================================================
-    // INSERT APPOINTMENT
-    // ======================================================
-
-    if ($errorMessage === '') {
-
-        try {
-
-            // ------------------------------------------------
-            // GENERATE UNIQUE APPOINTMENT NUMBER
-            // ------------------------------------------------
+            // ==========================================
+            // GENERATE APPOINTMENT NUMBER
+            // ==========================================
 
             do {
 
-                $appointmentNumber = random_int(
+                $aptnumber = mt_rand(
                     100000000,
                     999999999
                 );
 
-                $checkAppointment = $dbh->prepare(
+
+                $checkAppointment = mysqli_prepare(
+                    $conn,
                     "SELECT ID
                      FROM tblappointment
-                     WHERE AppointmentNumber = :appointmentNumber
+                     WHERE AppointmentNumber = ?
                      LIMIT 1"
                 );
 
-                $checkAppointment->bindValue(
-                    ':appointmentNumber',
-                    $appointmentNumber,
-                    PDO::PARAM_INT
+
+                if (!$checkAppointment) {
+
+                    die(
+                        'Unable to check appointment number.'
+                    );
+                }
+
+
+                mysqli_stmt_bind_param(
+                    $checkAppointment,
+                    "i",
+                    $aptnumber
                 );
 
-                $checkAppointment->execute();
+                mysqli_stmt_execute(
+                    $checkAppointment
+                );
 
-            } while ($checkAppointment->fetch(PDO::FETCH_ASSOC));
+                $appointmentResult =
+                    mysqli_stmt_get_result(
+                        $checkAppointment
+                    );
+
+                $appointmentExists =
+                    $appointmentResult &&
+                    mysqli_num_rows(
+                        $appointmentResult
+                    ) > 0;
 
 
-            // ------------------------------------------------
-            // CURRENT DATE/TIME
-            // ------------------------------------------------
+                mysqli_stmt_close(
+                    $checkAppointment
+                );
 
-            $applyDate = date('Y-m-d H:i:s');
+            } while ($appointmentExists);
 
 
-            // ------------------------------------------------
-            // INSERT
-            // ------------------------------------------------
-            // Your table:
-            //
-            // ID
-            // AppointmentNumber
-            // Name
-            // MobileNumber
-            // Email
-            // AppointmentDate
-            // AppointmentTime
-            // Specialization
-            // Doctor
-            // Message
-            // ApplyDate
-            // Remark
-            // Status
-            // UpdatonDate
-            //
-            // We allow Remark, Status and UpdatonDate to use
-            // their database defaults/NULL values.
-            // ------------------------------------------------
+            // ==========================================
+            // INSERT APPOINTMENT
+            // ==========================================
 
             $sql = "
                 INSERT INTO tblappointment
@@ -330,174 +245,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
                     AppointmentTime,
                     Specialization,
                     Doctor,
-                    Message,
-                    ApplyDate
+                    Message
                 )
                 VALUES
-                (
-                    :appointmentNumber,
-                    :name,
-                    :mobileNumber,
-                    :email,
-                    :appointmentDate,
-                    :appointmentTime,
-                    :specialization,
-                    :doctor,
-                    :message,
-                    :applyDate
-                )
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ";
 
 
-            $query = $dbh->prepare($sql);
-
-
-            // ------------------------------------------------
-            // BIND VALUES
-            // ------------------------------------------------
-
-            $query->bindValue(
-                ':appointmentNumber',
-                $appointmentNumber,
-                PDO::PARAM_INT
-            );
-
-            $query->bindValue(
-                ':name',
-                $name,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':mobileNumber',
-                $mobileNumber,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':email',
-                $email,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':appointmentDate',
-                $appointmentDate,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':appointmentTime',
-                $appointmentTime,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':specialization',
-                $specialization,
-                PDO::PARAM_INT
-            );
-
-            $query->bindValue(
-                ':doctor',
-                $doctor,
-                PDO::PARAM_INT
-            );
-
-            $query->bindValue(
-                ':message',
-                $message,
-                PDO::PARAM_STR
-            );
-
-            $query->bindValue(
-                ':applyDate',
-                $applyDate,
-                PDO::PARAM_STR
+            $stmt = mysqli_prepare(
+                $conn,
+                $sql
             );
 
 
-            // ------------------------------------------------
-            // EXECUTE
-            // ------------------------------------------------
-
-            $query->execute();
+            if ($stmt) {
 
 
-            // ------------------------------------------------
-            // SUCCESS
-            // ------------------------------------------------
-
-            $successMessage =
-                'Your Appointment Request Has Been Sent. We Will Contact You Soon.';
-
-
-            // ------------------------------------------------
-            // REDIRECT AFTER SUCCESS
-            // ------------------------------------------------
-            // Redirect prevents duplicate form submission.
-            // ------------------------------------------------
-
-            header(
-                'Location: bookappointment.php?success=1'
-            );
-
-            exit;
+                mysqli_stmt_bind_param(
+                    $stmt,
+                    "isssssiss",
+                    $aptnumber,
+                    $name,
+                    $mobnum,
+                    $email,
+                    $appdate,
+                    $aaptime,
+                    $specialization,
+                    $doctorlist,
+                    $message
+                );
 
 
-        } catch (PDOException $e) {
+                if (
+                    mysqli_stmt_execute($stmt)
+                ) {
 
-            // ------------------------------------------------
-            // LOG REAL DATABASE ERROR
-            // ------------------------------------------------
-
-            error_log(
-                'Appointment booking error: ' .
-                $e->getMessage()
-            );
+                    $lastInsertId =
+                        mysqli_insert_id($conn);
 
 
-            $errorMessage =
-                'Something went wrong while booking your appointment. Please try again.';
+                    mysqli_stmt_close($stmt);
+
+
+                    if ($lastInsertId > 0) {
+
+                        echo '<script>
+                            alert(
+                                "Your Appointment Request Has Been Send. We Will Contact You Soon"
+                            );
+                            window.location.href =
+                                "bookappointment.php";
+                        </script>';
+
+                        exit;
+
+                    } else {
+
+                        echo '<script>
+                            alert(
+                                "Something Went Wrong. Please try again"
+                            );
+                        </script>';
+
+                    }
+
+
+                } else {
+
+                    echo '<script>
+                        alert(
+                            "Something Went Wrong. Please try again"
+                        );
+                    </script>';
+
+                    mysqli_stmt_close($stmt);
+                }
+
+
+            } else {
+
+                echo '<script>
+                    alert(
+                        "Unable to process appointment. Please try again."
+                    );
+                </script>';
+
+            }
+
         }
+
     }
-}
 
-
-// ==========================================================
-// SUCCESS MESSAGE AFTER REDIRECT
-// ==========================================================
-
-if (
-    isset($_GET['success']) &&
-    $_GET['success'] === '1'
-) {
-
-    $successMessage =
-        'Your Appointment Request Has Been Sent. We Will Contact You Soon.';
 }
 
 ?>
 
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 
 <head>
 
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Doctor Appointment</title>
+    <title>
+        Doctor Appointment
+    </title>
 
 
-    <!-- ==================================================
-         GOOGLE FONT
-    =================================================== -->
+    <!-- CSS FILES -->
 
     <link
         rel="preconnect"
@@ -515,82 +368,41 @@ if (
         rel="stylesheet"
     >
 
-
-    <!-- ==================================================
-         APPOINTMENT CSS
-    =================================================== -->
-
     <link
-        rel="stylesheet"
         href="css_app/bootstrap.min1.css"
+        rel="stylesheet"
     >
+
 
     <link
-        rel="stylesheet"
         href="css_app/templatemo-medic-care4.css"
+        rel="stylesheet"
     >
 
-
-    <!-- ==================================================
-         JQUERY
-    =================================================== -->
-
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js">
-    </script>
-
-
-    <!-- ==================================================
-         GET DOCTORS
-    =================================================== -->
 
     <script>
 
-        function getdoctors(value) {
-
-            const doctorList =
-                document.getElementById('doctorlist');
-
-            if (!doctorList) {
-                return;
-            }
-
-
-            // Clear old doctors
-
-            doctorList.innerHTML =
-                '<option value="">Loading doctors...</option>';
-
-
-            if (!value) {
-
-                doctorList.innerHTML =
-                    '<option value="">Select Doctor</option>';
-
-                return;
-            }
-
+        function getdoctors(val) {
 
             $.ajax({
 
-                type: 'POST',
+                type: "POST",
 
-                url: 'get_doctors.php',
+                url: "get_doctors.php",
 
-                data: {
-                    sp_id: value
-                },
+                data: 'sp_id=' + val,
 
                 success: function(data) {
 
-                    doctorList.innerHTML = data;
+                    $("#doctorlist").html(data);
 
                 },
 
                 error: function() {
 
-                    doctorList.innerHTML =
-                        '<option value="">Unable to load doctors</option>';
+                    $("#doctorlist").html(
+                        '<option value="">Unable to load doctors</option>'
+                    );
 
                 }
 
@@ -600,133 +412,16 @@ if (
 
     </script>
 
-
-    <!-- ==================================================
-         MINIMUM DATE
-    =================================================== -->
-
-    <script>
-
-        document.addEventListener(
-            'DOMContentLoaded',
-            function() {
-
-                const dateInput =
-                    document.getElementById('date');
-
-                if (dateInput) {
-
-                    const today =
-                        new Date();
-
-                    today.setDate(
-                        today.getDate() + 1
-                    );
-
-                    const year =
-                        today.getFullYear();
-
-                    const month =
-                        String(
-                            today.getMonth() + 1
-                        ).padStart(2, '0');
-
-                    const day =
-                        String(
-                            today.getDate()
-                        ).padStart(2, '0');
-
-                    dateInput.min =
-                        year + '-' +
-                        month + '-' +
-                        day;
-                }
-
-            }
-        );
-
-    </script>
-
 </head>
 
 
 <body
     style="
-        background-color: white;
-        border-radius: 10px;
+        background-color:White;
+        border-radius:10px;
     "
 >
 
-
-<!-- ======================================================
-     SUCCESS MESSAGE
-======================================================= -->
-
-<?php if ($successMessage !== ''): ?>
-
-    <div
-        style="
-            max-width:900px;
-            margin:30px auto 0;
-            padding:15px 20px;
-            background:#e8f8ee;
-            border:1px solid #28a745;
-            border-radius:8px;
-            color:#155724;
-            text-align:center;
-            font-size:16px;
-        "
-    >
-
-        <?php
-        echo htmlspecialchars(
-            $successMessage,
-            ENT_QUOTES,
-            'UTF-8'
-        );
-        ?>
-
-    </div>
-
-<?php endif; ?>
-
-
-<!-- ======================================================
-     ERROR MESSAGE
-======================================================= -->
-
-<?php if ($errorMessage !== ''): ?>
-
-    <div
-        style="
-            max-width:900px;
-            margin:30px auto 0;
-            padding:15px 20px;
-            background:#fdeaea;
-            border:1px solid #dc3545;
-            border-radius:8px;
-            color:#721c24;
-            text-align:center;
-            font-size:16px;
-        "
-    >
-
-        <?php
-        echo htmlspecialchars(
-            $errorMessage,
-            ENT_QUOTES,
-            'UTF-8'
-        );
-        ?>
-
-    </div>
-
-<?php endif; ?>
-
-
-<!-- ======================================================
-     BOOKING SECTION
-======================================================= -->
 
 <section
     class="section-padding"
@@ -745,41 +440,32 @@ if (
             >
 
 
-                <div class="booking-form">
+                <div
+                    class="booking-form"
+                >
 
 
                     <h3
                         class="text-center mb-lg-3 mb-2"
                         style="color:#0188df;"
                     >
-
                         Book an appointment
-
                     </h3>
 
-
-                    <!-- ==================================================
-                         BOOKING FORM
-                    =================================================== -->
 
                     <form
                         role="form"
                         method="post"
-                        action="bookappointment.php<?php
-                            if ($selectedSpecialization > 0) {
-                                echo '?id=' . $selectedSpecialization;
-                            }
-                        ?>"
                         style="margin-top:30px;"
                     >
 
 
-                        <div class="row">
+                        <div
+                            class="row"
+                        >
 
 
-                            <!-- ==========================================
-                                 NAME
-                            =========================================== -->
+                            <!-- FULL NAME -->
 
                             <div
                                 class="col-lg-6 col-12"
@@ -796,6 +482,7 @@ if (
                                         border-radius:8px;
                                     "
                                     placeholder="Full name"
+                                    required
                                     value="<?php
                                         echo htmlspecialchars(
                                             $_POST['name'] ?? '',
@@ -803,15 +490,12 @@ if (
                                             'UTF-8'
                                         );
                                     ?>"
-                                    required
                                 >
 
                             </div>
 
 
-                            <!-- ==========================================
-                                 EMAIL
-                            =========================================== -->
+                            <!-- EMAIL -->
 
                             <div
                                 class="col-lg-6 col-12"
@@ -821,6 +505,7 @@ if (
                                     type="email"
                                     name="email"
                                     id="email"
+                                    pattern="[^ @]*@[^ @]*"
                                     class="form-control"
                                     style="
                                         font-size:15px;
@@ -828,6 +513,7 @@ if (
                                         border-radius:8px;
                                     "
                                     placeholder="Email address"
+                                    required
                                     value="<?php
                                         echo htmlspecialchars(
                                             $_POST['email'] ?? '',
@@ -835,15 +521,12 @@ if (
                                             'UTF-8'
                                         );
                                     ?>"
-                                    required
                                 >
 
                             </div>
 
 
-                            <!-- ==========================================
-                                 PHONE
-                            =========================================== -->
+                            <!-- PHONE -->
 
                             <div
                                 class="col-lg-6 col-12"
@@ -861,8 +544,8 @@ if (
                                     "
                                     placeholder="Enter Phone Number"
                                     maxlength="10"
-                                    minlength="10"
                                     pattern="[0-9]{10}"
+                                    required
                                     value="<?php
                                         echo htmlspecialchars(
                                             $_POST['phone'] ?? '',
@@ -870,15 +553,12 @@ if (
                                             'UTF-8'
                                         );
                                     ?>"
-                                    required
                                 >
 
                             </div>
 
 
-                            <!-- ==========================================
-                                 DATE
-                            =========================================== -->
+                            <!-- DATE -->
 
                             <div
                                 class="col-lg-6 col-12"
@@ -894,6 +574,7 @@ if (
                                         background-color:#EDF4FF;
                                         border-radius:8px;
                                     "
+                                    required
                                     value="<?php
                                         echo htmlspecialchars(
                                             $_POST['date'] ?? '',
@@ -901,15 +582,12 @@ if (
                                             'UTF-8'
                                         );
                                     ?>"
-                                    required
                                 >
 
                             </div>
 
 
-                            <!-- ==========================================
-                                 TIME
-                            =========================================== -->
+                            <!-- TIME -->
 
                             <div
                                 class="col-lg-6 col-12"
@@ -925,6 +603,7 @@ if (
                                         background-color:#EDF4FF;
                                         border-radius:8px;
                                     "
+                                    required
                                     value="<?php
                                         echo htmlspecialchars(
                                             $_POST['time'] ?? '',
@@ -932,22 +611,19 @@ if (
                                             'UTF-8'
                                         );
                                     ?>"
-                                    required
                                 >
 
                             </div>
 
 
-                            <!-- ==========================================
-                                 SPECIALIZATION
-                            =========================================== -->
+                            <!-- SPECIALIZATION -->
 
                             <div
                                 class="col-lg-6 col-12"
                             >
 
                                 <select
-                                    onchange="getdoctors(this.value);"
+                                    onChange="getdoctors(this.value);"
                                     name="specialization"
                                     id="specialization"
                                     class="form-control"
@@ -966,41 +642,51 @@ if (
 
                                     <?php
 
-                                    try {
+                                    // ==================================
+                                    // LOAD SPECIALIZATIONS
+                                    // ==================================
 
-                                        // ----------------------------------
-                                        // If specialization was selected
-                                        // ----------------------------------
+                                    if ($specializationId > 0) {
 
-                                        if (
-                                            $selectedSpecialization > 0
-                                        ) {
-
-                                            $sql = "
-                                                SELECT ID, Specialization
-                                                FROM tblspecialization
-                                                WHERE ID = :id
-                                                LIMIT 1
-                                            ";
-
-                                            $stmt =
-                                                $dbh->prepare($sql);
-
-                                            $stmt->bindValue(
-                                                ':id',
-                                                $selectedSpecialization,
-                                                PDO::PARAM_INT
+                                        $stmt =
+                                            mysqli_prepare(
+                                                $conn,
+                                                "SELECT ID, Specialization
+                                                 FROM tblspecialization
+                                                 WHERE ID = ?
+                                                 LIMIT 1"
                                             );
 
-                                            $stmt->execute();
 
-                                            $row =
-                                                $stmt->fetch(
-                                                    PDO::FETCH_ASSOC
+                                        if ($stmt) {
+
+                                            mysqli_stmt_bind_param(
+                                                $stmt,
+                                                "i",
+                                                $specializationId
+                                            );
+
+                                            mysqli_stmt_execute(
+                                                $stmt
+                                            );
+
+                                            $result =
+                                                mysqli_stmt_get_result(
+                                                    $stmt
                                                 );
 
 
-                                            if ($row) {
+                                            if (
+                                                $result &&
+                                                mysqli_num_rows(
+                                                    $result
+                                                ) > 0
+                                            ) {
+
+                                                $row =
+                                                    mysqli_fetch_assoc(
+                                                        $result
+                                                    );
 
                                                 ?>
 
@@ -1025,26 +711,29 @@ if (
 
                                             }
 
-                                        } else {
+                                            mysqli_stmt_close(
+                                                $stmt
+                                            );
 
-                                            // ----------------------------------
-                                            // Show all specializations
-                                            // ----------------------------------
+                                        }
 
-                                            $sql = "
-                                                SELECT ID, Specialization
-                                                FROM tblspecialization
-                                                ORDER BY Specialization ASC
-                                            ";
+                                    } else {
 
-                                            $stmt =
-                                                $dbh->query($sql);
+                                        $result =
+                                            mysqli_query(
+                                                $conn,
+                                                "SELECT ID, Specialization
+                                                 FROM tblspecialization
+                                                 ORDER BY ID ASC"
+                                            );
 
+
+                                        if ($result) {
 
                                             while (
                                                 $row =
-                                                $stmt->fetch(
-                                                    PDO::FETCH_ASSOC
+                                                mysqli_fetch_assoc(
+                                                    $result
                                                 )
                                             ) {
 
@@ -1072,21 +761,6 @@ if (
 
                                         }
 
-                                    } catch (PDOException $e) {
-
-                                        error_log(
-                                            'Specialization loading error: ' .
-                                            $e->getMessage()
-                                        );
-
-                                        ?>
-
-                                        <option value="">
-                                            Unable to load specialization
-                                        </option>
-
-                                        <?php
-
                                     }
 
                                     ?>
@@ -1096,9 +770,7 @@ if (
                             </div>
 
 
-                            <!-- ==========================================
-                                 DOCTOR
-                            =========================================== -->
+                            <!-- DOCTOR -->
 
                             <div
                                 class="col-lg-6 col-12"
@@ -1125,18 +797,17 @@ if (
                             </div>
 
 
-                            <!-- ==========================================
-                                 MESSAGE
-                            =========================================== -->
+                            <!-- MESSAGE -->
 
-                            <div class="col-12">
+                            <div
+                                class="col-12"
+                            >
 
                                 <textarea
                                     class="form-control"
                                     rows="5"
                                     id="message"
                                     name="message"
-                                    maxlength="1000"
                                     style="
                                         font-size:15px;
                                         background-color:#EDF4FF;
@@ -1154,9 +825,7 @@ if (
                             </div>
 
 
-                            <!-- ==========================================
-                                 SUBMIT BUTTON
-                            =========================================== -->
+                            <!-- BOOK BUTTON -->
 
                             <div
                                 class="col-lg-3 col-md-4 col-6 mx-auto"
@@ -1168,9 +837,7 @@ if (
                                     name="submit"
                                     style="margin-top:50px;"
                                 >
-
                                     Book Now
-
                                 </button>
 
                             </div>
@@ -1179,6 +846,7 @@ if (
                         </div>
 
                     </form>
+
 
                 </div>
 
@@ -1191,19 +859,19 @@ if (
 </section>
 
 
-<!-- ======================================================
-     APPOINTMENT JAVASCRIPT
-======================================================= -->
+<!-- ==========================================
+     JAVASCRIPT
+========================================== -->
 
-<script src="css_app/js/jquery.min.js"></script>
+<script src="js/jquery.min.js"></script>
 
-<script src="css_app/js/bootstrap.bundle.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
 
-<script src="css_app/js/owl.carousel.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
 
-<script src="css_app/js/scrollspy.min.js"></script>
+<script src="js/scrollspy.min.js"></script>
 
-<script src="css_app/js/custom.js"></script>
+<script src="js/custom.js"></script>
 
 
 </body>
